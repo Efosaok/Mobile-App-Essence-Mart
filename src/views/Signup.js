@@ -83,7 +83,7 @@ export default class Signup extends Component {
         <Button
           color="#e65100"
           title="Signup"
-          onPress={() => this.registerUser()}
+          onPress={() => this.props.navigation.navigate('Stores')}
         />
 
         <Text 

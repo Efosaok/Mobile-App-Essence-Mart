@@ -7,6 +7,7 @@ import SignupScreen from '../views/Signup';
 import LoginScreen from '../views/Login';
 import StoresScreen from '../views/Stores';
 import CheckoutScreen from '../views/Checkout';
+import DetailsScreen from '../views/Details';
 
 const Stack = createStackNavigator();
 
@@ -30,6 +31,7 @@ export default function Routes() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Stores" component={StoresScreen} />
         <Stack.Screen name="Checkout" component={CheckoutScreen} />
+        <Stack.Screen name="Details" component={DetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
