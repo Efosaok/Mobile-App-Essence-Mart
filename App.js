@@ -1,18 +1,17 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import Routes from "./src/router";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StyleSheet, Text, View } from 'react-native';
+import { StoreListProvider } from './src/context/StoreListContext'
+import Routes from "./src/router";
 
 export default function App() {
   return (
     <SafeAreaProvider style={styles.main}>
-      <Routes />
+      <StoreListProvider>
+        <Routes />
+      </StoreListProvider>
       <StatusBar style="auto" />
-      {/* <View style={styles.container}>
-        <Text>Open up App.js to start working on your app!</Text>
-        <StatusBar style="auto" />
-      </View> */}
     </SafeAreaProvider>
   );
 }
