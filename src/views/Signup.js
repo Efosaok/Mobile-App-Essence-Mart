@@ -1,22 +1,30 @@
-// components/signup.js
-
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Alert, ActivityIndicator, TouchableOpacity, Dimensions } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
 import firebase from '../database/firebaseDB';
+import SafeAreaView from 'react-native-safe-area-view';
+import Form from '../widgets/Form';
+import AuthFooter from '../widgets/AuthFooter';
 
+const {height, width} = Dimensions.get('window');
 
 export default class Signup extends Component {
   
   constructor() {
     super();
     this.state = { 
-      displayName: '',
+      username: '',
       email: '', 
       password: '',
-      isLoading: false
+      isLoading: false,
+      rememberMe: false,
+      guide: true
     }
   }
 
+  onRememberMe = (isOn) => {
+    this.setState({ ...this.state, rememberMe: isOn })
+  }
   updateInputVal = (val, prop) => {
     const state = this.state;
     state[prop] = val;
@@ -35,12 +43,12 @@ export default class Signup extends Component {
       .createUserWithEmailAndPassword(this.state.email, this.state.password)
       .then((res) => {
         res.user.updateProfile({
-          displayName: this.state.displayName
+          username: this.state.username
         })
         console.log('User registered successfully!')
         this.setState({
           isLoading: false,
-          displayName: '',
+          username: '',
           email: '', 
           password: ''
         })
@@ -57,66 +65,100 @@ export default class Signup extends Component {
           <ActivityIndicator size="large" color="#9E9E9E"/>
         </View>
       )
-    }    
+    }
     return (
-      <View style={styles.container}>  
-        <TextInput
-          style={styles.inputStyle}
-          placeholder="Name"
-          value={this.state.displayName}
-          onChangeText={(val) => this.updateInputVal(val, 'displayName')}
-        />      
-        <TextInput
-          style={styles.inputStyle}
-          placeholder="Email"
-          value={this.state.email}
-          onChangeText={(val) => this.updateInputVal(val, 'email')}
-        />
-        <TextInput
-          style={styles.inputStyle}
-          placeholder="Password"
-          value={this.state.password}
-          onChangeText={(val) => this.updateInputVal(val, 'password')}
-          maxLength={15}
-          secureTextEntry={true}
-        />   
-        <Button
-          color="#e65100"
-          title="Signup"
-          onPress={() => this.props.navigation.navigate('Stores')}
-        />
-
-        <Text 
-          style={styles.loginText}
-          onPress={() => this.props.navigation.navigate('Login')}>
-          Already Registered? Click here to login
-        </Text>                          
-      </View>
+      <SafeAreaView forceInset={{ top: 'always' }}>
+        <ScrollView>
+          <View style={styles.container}>
+            {this.state.guide && <View style={styles.introSection}>
+              <AntDesign
+                onPress={() => this.setState((curr) => ({ ...curr, guide: !curr.guide, }))}
+                style={styles.helpCenterIcon} name="close" size={18} color="black"
+              />
+              <Text 
+                style={styles.helpCenter}
+                onPress={() => this.props.navigation.navigate('Login')}>
+                Needs Some Help ?
+              </Text>
+            </View>}
+            <View style={{ flex: 2 }}>
+              <View style={styles.headerSection}>
+                <Text style={styles.heading}>
+                  Let's Get Started
+                </Text>
+                <Text style={styles.summary}>
+                  Sign up and we will continue 
+                </Text>
+              </View>
+              <Form {...this.state} isRegistration updateInputVal={this.updateInputVal} />
+              <AuthFooter {...this.state} onRememberMe={this.onRememberMe} />
+              <TouchableOpacity
+                style={{ backgroundColor: 'blue', borderRadius:10, paddingVertical: 15, marginTop: 30, }}
+                title="Signup"
+                onPress={this.registerUser}
+              >
+                <Text style={{ color: 'white', fontWeight: 'bold', textAlign: 'center' }}>Signup</Text>
+              </TouchableOpacity>
+            </View>
+            <Text 
+              style={styles.loginText}
+              onPress={() => this.props.navigation.navigate('Login')}>
+              Already have an account? <Text style={{ color: 'black', fontWeight: 'bold' }}>Signin</Text>
+            </Text>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    display: "flex",
+    display: 'flex',
     flexDirection: "column",
-    justifyContent: "center",
-    padding: 35,
-    backgroundColor: '#fff'
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    minHeight: height,
   },
-  inputStyle: {
-    width: '100%',
-    marginBottom: 15,
-    paddingBottom: 15,
-    alignSelf: "center",
-    borderColor: "#ccc",
-    borderBottomWidth: 1
+  introSection: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 45,
+    marginTop: 10,
+    flex: .1,
+  },
+  helpCenterIcon: {
+    color: '#808080'
+  },
+  helpCenter: {
+    textDecorationLine: 'underline',
+    color: '#808080'
+  },
+  headerSection: {
+    marginVertical: 15
+  },
+  heading: {
+    fontSize: 35,
+    fontWeight: 'bold',
+    textTransform: 'capitalize',
+    textAlign: 'center'
+  },
+  summary: {
+    fontSize: 17,
+    textAlign: 'center',
+    color: '#808080'
   },
   loginText: {
-    color: '#3740FE',
+    color: '#808080',
     marginTop: 25,
-    textAlign: 'center'
+    textAlign: 'center',
+    display: 'flex',
+    paddingVertical: 10,
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end'
   },
   preloader: {
     left: 0,

@@ -17,18 +17,8 @@ export default function Routes() {
       <Stack.Navigator >
           {/* screenOptions={{ headerShown: false }}> */}
         {/* <Stack.Screen name="Onboarding" component={OnboardingScreen} /> */}
-        <Stack.Screen options={{
-          title: 'Signup',
-          headerStyle: {
-            backgroundColor: '#ffd180',
-          },
-          headerTintColor: '#fff',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-            textAlign: 'center'
-          },
-        }} name="Signup" component={SignupScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen options={{ headerShown: false }} name="Signup" component={SignupScreen} />
+        <Stack.Screen options={{ headerShown: false }} name="Login" component={LoginScreen} />
         <Stack.Screen name="Stores" component={StoresScreen} />
         <Stack.Screen name="Checkout" component={CheckoutScreen} />
         <Stack.Screen name="Details" component={DetailsScreen} />
