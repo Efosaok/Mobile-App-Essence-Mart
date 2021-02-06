@@ -2,9 +2,12 @@ import React from 'react';
 import { Text, View, TouchableOpacity, StyleSheet, StatusBar, ScrollView, SafeAreaView } from 'react-native';
 import stores from '../database/stores';
 import { useStoreListContext } from '../context/StoreListContext'
+import { useUserContext } from '../context/UserContext';
+import PrivateRoute from './PrivateRoute'
 
 export default function StoresScreen(props) {
     const { store, setAccessedStore } = useStoreListContext()
+    const { logoutSuccess } = useUserContext()
 
     const onPress = (storeItem) => {
         setAccessedStore(storeItem);
@@ -12,7 +15,8 @@ export default function StoresScreen(props) {
     };
 
     return (
-      <SafeAreaView style={styles.container}>
+      <PrivateRoute {...props}>
+        <SafeAreaView style={styles.container}>
           <ScrollView style={styles.scrollView}>
               <View style={styles.main}>
               {
@@ -27,8 +31,15 @@ export default function StoresScreen(props) {
                 ))
               }
               </View>
+              <TouchableOpacity
+                  style={styles.item}
+                  onPress={() => logoutSuccess()}
+                >
+                  <Text>logout</Text>
+                </TouchableOpacity>
           </ScrollView>
-      </SafeAreaView>
+        </SafeAreaView>
+      </PrivateRoute>
     );
 }
 

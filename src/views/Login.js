@@ -1,115 +1,122 @@
 // components/login.js
 
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, Alert, ActivityIndicator, TouchableOpacity, Dimensions } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import firebase from '../database/firebaseDB';
+import firebase from '../database/firebase';
 import SafeAreaView from 'react-native-safe-area-view';
 import Form from '../widgets/Form';
 import AuthFooter from '../widgets/AuthFooter';
+import Loader from '../widgets/Loader';
+import { useUserContext } from '../context/UserContext';
 
 const {height, width} = Dimensions.get('window');
 
 
-export default class Login extends Component {
-  
-  constructor() {
-    super();
-    this.state = { 
-      email: '', 
-      password: '',
-      isLoading: false,
-      rememberMe: false,
-      guide: true
+export default function Login(props) {
+  const { isLoggedIn } = useUserContext()
+  const [state, setState] = useState({ 
+    username: '',// email
+    password: '',
+    isLoading: false,
+    rememberMe: false,
+    guide: true
+  })
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      props.navigation.navigate('Stores')
     }
+  },[isLoggedIn]);
+
+  const onRememberMe = (isOn) => {
+    setState({ ...state, rememberMe: isOn })
   }
 
-  onRememberMe = (isOn) => {
-    this.setState({ ...this.state, rememberMe: isOn })
+  const updateInputVal = (val, prop) => {
+    const currentState = { ...state };
+    currentState[prop] = val;
+    setState(currentState);
   }
 
-  updateInputVal = (val, prop) => {
-    const state = this.state;
-    state[prop] = val;
-    this.setState(state);
-  }
-
-  userLogin = () => {
-    if(this.state.email === '' && this.state.password === '') {
+  const userLogin = () => {
+    if(state.username === '' && state.password === '') {
       Alert.alert('Enter details to signin!')
     } else {
-      this.setState({
+      setState({
         isLoading: true,
+        errorMessage: null
       })
       firebase
       .auth()
-      .signInWithEmailAndPassword(this.state.email, this.state.password)
+      .signInWithEmailAndPassword(state.username, state.password)
       .then((res) => {
-        console.log(res)
-        console.log('User logged-in successfully!')
-        this.setState({
+        setState({
+          ...state,
           isLoading: false,
           email: '', 
           password: ''
         })
-        this.props.navigation.navigate('Stores')
       })
-      .catch(error => this.setState({ errorMessage: error.message }))
+      .catch(error => {
+        setState({
+          ...state,
+          isLoading: false,
+          errorMessage: error.message
+        })
+      })
     }
   }
 
-  render() {
-    if(this.state.isLoading){
-      return(
-        <View style={styles.preloader}>
-          <ActivityIndicator size="large" color="#9E9E9E"/>
-        </View>
-      )
-    }    
-    return (
-      <SafeAreaView forceInset={{ top: 'always' }}>
-        <ScrollView>
-          <View style={styles.container}>
-            {this.state.guide && <View style={styles.introSection}>
-              <AntDesign
-                onPress={() => this.setState((curr) => ({ ...curr, guide: !curr.guide, }))}
-                style={styles.helpCenterIcon} name="close" size={18} color="black"
-              />
-              <Text 
-                style={styles.helpCenter}
-                onPress={() => this.props.navigation.navigate('Login')}>
-                Forgot your password ?
-              </Text>
-            </View>}
-            <View style={{ flex: 1 }}>
-              <View style={styles.headerSection}>
-                <Text style={styles.heading}>
-                  Welcome!
-                </Text>
-                <Text style={styles.summary}>
-                  Please enter your data to continue
-                </Text>
-              </View>
-              <Form {...this.state} updateInputVal={this.updateInputVal} />
-              <AuthFooter {...this.state} onRememberMe={this.onRememberMe} />
-              <TouchableOpacity
-                style={{ backgroundColor: 'blue', borderRadius:10, paddingVertical: 15, marginTop: 30, }}
-                title="Signup"
-                onPress={this.userLogin}
-              >
-                <Text style={{ color: 'white', fontWeight: 'bold', textAlign: 'center' }}>Login</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.loginText}>
-              By connecting your account confirmed that you agreed with our
-              <Text style={{ color: 'black', fontWeight: 'bold' }}> Term and Condition</Text>
+  return (
+    <SafeAreaView forceInset={{ top: 'always' }}>
+      <ScrollView>
+        {state.isLoading && <Loader isLoading={state.isLoading} />}
+        <View style={styles.container}>
+          {state.guide &&
+          <View style={styles.introSection}>
+            <AntDesign
+              onPress={() => setState((curr) => ({ ...curr, guide: !curr.guide, }))}
+              style={styles.helpCenterIcon} name="close" size={18} color="black"
+            />
+            <Text 
+              style={styles.helpCenter}
+              onPress={() => props.navigation.navigate('Login')}>
+              Forgot your password ?
             </Text>
+          </View>}
+          <View style={{ flex: 1 }}>
+            <View style={styles.headerSection}>
+              <Text style={styles.heading}>
+                Welcome!
+              </Text>
+              <Text style={styles.summary}>
+                Please enter your data to continue
+              </Text>
+            </View>
+            <Form {...state} updateInputVal={updateInputVal} />
+            <AuthFooter {...state} onRememberMe={onRememberMe} />
+            {state.errorMessage && <Text style={styles.errMsg}>
+              {state.errorMessage}
+            </Text>}
+            <TouchableOpacity
+              style={{ backgroundColor: 'blue', borderRadius:10, paddingVertical: 15, marginTop: 30, }}
+              title="Signup"
+              onPress={userLogin}
+            >
+              <Text style={{ color: 'white', fontWeight: 'bold', textAlign: 'center' }}>Login</Text>
+            </TouchableOpacity>
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
+          <Text style={styles.loginText}>
+            By connecting your account confirmed that you agreed with our
+            <Text style={{ color: 'black', fontWeight: 'bold' }}> Term and Condition</Text>
+          </Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -158,6 +165,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     alignItems: 'flex-end'
+  },
+  errMsg: {
+    textDecorationLine: 'underline',
+    textAlign: 'center',
+    color: '#ba3939',
+    marginTop: 10
   },
   preloader: {
     left: 0,
