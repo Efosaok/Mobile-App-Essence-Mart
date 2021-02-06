@@ -44,6 +44,7 @@ export default function Signup (props) {
       Alert.alert('Enter details to signup!')
     } else {
       setState({
+        ...state,
         isLoading: true,
       })
       firebase

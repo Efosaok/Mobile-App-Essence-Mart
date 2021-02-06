@@ -44,6 +44,7 @@ export default function Login(props) {
       Alert.alert('Enter details to signin!')
     } else {
       setState({
+        ...state,
         isLoading: true,
         errorMessage: null
       })
