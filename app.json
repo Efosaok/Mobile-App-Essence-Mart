@@ -1,13 +1,19 @@
 {
   "expo": {
-    "name": "essence-mart-mobile",
+    "name": "Essence Mart Mobile",
     "slug": "essence-mart-mobile",
-    "version": "1.0.0",
+    "privacy": "public",
+    "sdkVersion": "39.0.0",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "version": "1.3.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
-      "resizeMode": "contain",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
     "updates": {
@@ -19,14 +25,6 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
-      }
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    }
+    "description": "Now UI React Native, based on Now UI Design System. Coded by Creative Tim"
   }
 }
