@@ -1,8 +1,9 @@
 node_modules/**/*
 .expo/*
 npm-debug.*
+package-lock.json
+yarn.lock
 *.jks
-*.p8
 *.p12
 *.key
 *.mobileprovision
@@ -13,3 +14,4 @@ config
 
 # macOS
 .DS_Store
+bin/
