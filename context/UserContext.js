@@ -2,7 +2,7 @@ import { useEffect, useReducer } from 'react'
 import constate from 'constate'
 import logger from './Logger'
 import useLocalStorage from '../shared/useLocalStorage';
-import firebase from '../database/firebase';
+import firebase from '../shared/firebase';
 
 export const initialState = {
   token: '',
@@ -84,6 +84,11 @@ const useUser = () => {
         type: 'LOGOUT_SUCCESSFUL',
       })
     })
+    .catch(function(error) {
+      console.log('There has been a problem with your fetch operation: ' + error.message);
+       // ADD THIS THROW error
+        throw error;
+      })
   };
 
   const setEnlistHide = (enlistHide) => {

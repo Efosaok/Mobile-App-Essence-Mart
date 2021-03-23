@@ -1,6 +1,8 @@
-import React, { useEffect, useState, Fragment } from "react";
+import React, { useState, Fragment } from "react";
 import { StyleSheet, Dimensions, ScrollView, TouchableWithoutFeedback } from "react-native";
 import { Block, theme, Text } from "galio-framework";
+
+import { useStoreListContext } from '../context/StoreListContext';
 
 import articles from "../constants/categories";
 import { Icon } from "../components";
@@ -61,15 +63,16 @@ const { categories, subCategories } = articles;
 
 export default function Home ({ navigation }) {
   const [state, setState] = useState('');
-
-  useEffect(() => {
-    console.log('state', state)
-  }, [state])
+  const [shopCategories, setShopCategories] = useState({})
+  const { setStoreSection } = useStoreListContext()
 
   const handlePress = (text) => {
+    console.log('text')
     if(text && subCategories[text]) {
       setState(prev => prev === text ? '' : text)
+      setShopCategories({ category: text, items: subCategories[text] })
     } else {
+      setStoreSection({ ...shopCategories, current: text })
       navigation.navigate('Stores')
     }
   }
@@ -122,7 +125,6 @@ const styles = StyleSheet.create({
     paddingVertical: theme.SIZES.BASE,
     paddingHorizontal: 2,
     fontFamily: 'montserrat-regular'
-
   }
 });
 

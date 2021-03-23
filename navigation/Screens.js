@@ -6,13 +6,12 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 // screens
 import Home from '../screens/Home';
-import Pro from '../screens/Pro';
 import Profile from '../screens/Profile';
 import Register from '../screens/Register';
-import Components from '../screens/Components';
 import Articles from '../screens/Articles';
 import Onboarding from '../screens/Onboarding';
 import Stores from '../screens/Stores';
+import Store from '../screens/Store';
 import SettingsScreen from '../screens/Settings';
 // drawer
 import CustomDrawerContent from "./Menu";
@@ -24,17 +23,6 @@ const { width } = Dimensions.get("screen");
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
-
-function ComponentsStack(props) {
-  return (
-    <Stack.Navigator initialRouteName="Components" mode="card" headerMode="screen">
-      <Stack.Screen name="Components" component={Components} options={{
-        header:({ navigation, scene }) => (<Header title="Components" navigation={navigation} scene={scene} />),
-        backgroundColor: "#FFFFFF"
-      }}/>
-    </Stack.Navigator>
-  );
-}
 
 function ArticlesStack(props) {
   return (
@@ -89,23 +77,6 @@ function ProfileStack(props) {
           headerTransparent: true
         }}
       />
-      <Stack.Screen
-        name="Pro"
-        component={Pro}
-        options={{
-          header: ({ navigation, scene }) => (
-            <Header
-              title=""
-              back
-              white
-              transparent
-              navigation={navigation}
-              scene={scene}
-            />
-          ),
-          headerTransparent: true
-        }}
-      />
     </Stack.Navigator>
   );
 }
@@ -130,23 +101,6 @@ function HomeStack(props) {
           cardStyle: { backgroundColor: "#FFFFFF" }
         }}
       />
-      <Stack.Screen
-        name="Pro"
-        component={Pro}
-        options={{
-          header: ({ navigation, scene }) => (
-            <Header
-              title=""
-              back
-              white
-              transparent
-              navigation={navigation}
-              scene={scene}
-            />
-          ),
-          headerTransparent: true
-        }}
-      />
     </Stack.Navigator>
   );
 }
@@ -161,6 +115,29 @@ function StoresStack(props) {
           header: ({ navigation, scene }) => (
             <Header
               title="Stores"
+              context
+              navigation={navigation}
+              scene={scene}
+            />
+          ),
+          cardStyle: { backgroundColor: "#FFFFFF" }
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+
+function StoreStack(props) {
+  return (
+    <Stack.Navigator mode="card" headerMode="screen">
+      <Stack.Screen
+        name="Store"
+        component={Store}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              title="Store"
               context
               navigation={navigation}
               scene={scene}
@@ -205,11 +182,12 @@ function AppStack(props) {
       initialRouteName="Home"
     >
       <Drawer.Screen name="Home" component={HomeStack} />
-      <Drawer.Screen name="Components" component={ComponentsStack} />
+      {/* <Drawer.Screen name="Components" component={ComponentsStack} /> */}
       <Drawer.Screen name="Articles" component={ArticlesStack} />
       <Drawer.Screen name="Profile" component={ProfileStack} />
       <Drawer.Screen name="Account" component={AccountStack} />
       <Drawer.Screen name="Stores" component={StoresStack} />
+      <Drawer.Screen name="Store" component={StoreStack} />
     </Drawer.Navigator>
   );
 }

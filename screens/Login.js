@@ -23,7 +23,6 @@ const DismissKeyboard = ({ children }) => (
 function Register (props) {
   const { setUser, isLoggedIn } = useUserContext()
   const [state, setState] = useState({
-    username: '',
     email: '', 
     password: '',
     isLoading: false,
@@ -59,7 +58,7 @@ function Register (props) {
       })
       firebase
       .auth()
-      .createUserWithEmailAndPassword(state.email, state.password)
+      .signInWithEmailAndPassword(state.email, state.password)
       .then((res) => {
         res.user.updateProfile({
           username: state.username
@@ -105,7 +104,7 @@ function Register (props) {
                       color="#333"
                       size={24}
                     >
-                      Register
+                      Login
                     </Text>
                   </Block>
 
@@ -172,22 +171,6 @@ function Register (props) {
                                 size={16}
                                 color="#ADB5BD"
                                 name="email-852x"
-                                family="NowExtra"
-                                style={styles.inputIcons}
-                              />
-                            }
-                          />
-                        </Block>
-                        <Block width={width * 0.8} style={{ marginBottom: 5 }}>
-                          <Input
-                            placeholder="Username"
-                            style={styles.inputs}
-                            onChangeText={(val) => updateInputVal(val, 'username')}
-                            iconContent={
-                              <Icon
-                                size={16}
-                                color="#ADB5BD"
-                                name="profile-circle"
                                 family="NowExtra"
                                 style={styles.inputIcons}
                               />
