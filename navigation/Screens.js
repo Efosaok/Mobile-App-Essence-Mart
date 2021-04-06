@@ -6,35 +6,28 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 // screens
 import Home from '../screens/Home';
-import Pro from '../screens/Pro';
 import Profile from '../screens/Profile';
 import Register from '../screens/Register';
-import Components from '../screens/Components';
+import Login from '../screens/Login';
 import Articles from '../screens/Articles';
 import Onboarding from '../screens/Onboarding';
 import Stores from '../screens/Stores';
-import SettingsScreen from '../screens/Settings';
+import Store from '../screens/Store';
+import CartScreen from '../screens/Cart';
+import Settings from '../screens/Settings';
+import Checkout from '../screens/Checkout';
 // drawer
 import CustomDrawerContent from "./Menu";
 // header for screens
 import { Header, Icon} from '../components';
 import { nowTheme, tabs } from "../constants";
+import { useUserContext } from '../context/UserContext';
+import { useCartContext } from '../context/CartContext';
 
 const { width } = Dimensions.get("screen");
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
-
-function ComponentsStack(props) {
-  return (
-    <Stack.Navigator initialRouteName="Components" mode="card" headerMode="screen">
-      <Stack.Screen name="Components" component={Components} options={{
-        header:({ navigation, scene }) => (<Header title="Components" navigation={navigation} scene={scene} />),
-        backgroundColor: "#FFFFFF"
-      }}/>
-    </Stack.Navigator>
-  );
-}
 
 function ArticlesStack(props) {
   return (
@@ -47,17 +40,69 @@ function ArticlesStack(props) {
   );
 }
 
+function CheckoutStack(props) {
+  return (
+    <Stack.Navigator initialRouteName="Cart" mode="card" headerMode="screen">
+      <Stack.Screen
+        name="Cart"
+        component={CartScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              // transparent
+              title="Shopping Cart"
+              navigation={navigation}
+              scene={scene}
+            />
+          ),
+          headerTransparent: true
+        }}
+      />
+      <Stack.Screen
+        name="Checkout"
+        component={Checkout}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              // transparent
+              title="Checkout"
+              navigation={navigation}
+              scene={scene}
+            />
+          ),
+          headerTransparent: true
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
 function AccountStack(props) {
   return (
-    <Stack.Navigator initialRouteName="Account" mode="card" headerMode="screen">
+    <Stack.Navigator initialRouteName="Register" mode="card" headerMode="screen">
       <Stack.Screen
-        name="Account"
+        name="Register"
         component={Register}
         options={{
           header: ({ navigation, scene }) => (
             <Header 
               transparent
               title="Create Account"
+              navigation={navigation}
+              scene={scene}
+            />
+          ),
+          headerTransparent: true
+        }}
+      />
+      <Stack.Screen
+        name="Login"
+        component={Login}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header 
+              transparent
+              title="Account Login"
               navigation={navigation}
               scene={scene}
             />
@@ -89,21 +134,27 @@ function ProfileStack(props) {
           headerTransparent: true
         }}
       />
+    </Stack.Navigator>
+  );
+}
+
+
+function SettingsStack(props) {
+  return (
+    <Stack.Navigator initialRouteName="Settings" mode="card" headerMode="screen">
       <Stack.Screen
-        name="Pro"
-        component={Pro}
+        name="Settings"
+        component={Settings}
         options={{
           header: ({ navigation, scene }) => (
             <Header
-              title=""
-              back
-              white
-              transparent
+              title="Settings"
+              context
               navigation={navigation}
               scene={scene}
             />
           ),
-          headerTransparent: true
+          cardStyle: { backgroundColor: "#FFFFFF" }
         }}
       />
     </Stack.Navigator>
@@ -128,23 +179,6 @@ function HomeStack(props) {
             />
           ),
           cardStyle: { backgroundColor: "#FFFFFF" }
-        }}
-      />
-      <Stack.Screen
-        name="Pro"
-        component={Pro}
-        options={{
-          header: ({ navigation, scene }) => (
-            <Header
-              title=""
-              back
-              white
-              transparent
-              navigation={navigation}
-              scene={scene}
-            />
-          ),
-          headerTransparent: true
         }}
       />
     </Stack.Navigator>
@@ -173,7 +207,40 @@ function StoresStack(props) {
   );
 }
 
+
+function StoreStack(props) {
+  const { store } = useCartContext()
+  return (
+    <Stack.Navigator mode="card" headerMode="screen">
+      <Stack.Screen
+        name="Store"
+        component={Store}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              title={(store && store.title) || "Store"}
+              context
+              navigation={navigation}
+              scene={scene}
+            />
+          ),
+          cardStyle: { backgroundColor: "#FFFFFF" }
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
 function AppStack(props) {
+  const { isAuthenticated } = useUserContext();
+
+  const renderAccount = () => {
+    if (isAuthenticated) {
+      return <Drawer.Screen name="Profile" component={ProfileStack} />
+    }
+    return <Drawer.Screen name="Account" component={AccountStack} />
+  }
+
   return (
     <Drawer.Navigator
       style={{ flex: 1 }}
@@ -205,11 +272,13 @@ function AppStack(props) {
       initialRouteName="Home"
     >
       <Drawer.Screen name="Home" component={HomeStack} />
-      <Drawer.Screen name="Components" component={ComponentsStack} />
-      <Drawer.Screen name="Articles" component={ArticlesStack} />
-      <Drawer.Screen name="Profile" component={ProfileStack} />
-      <Drawer.Screen name="Account" component={AccountStack} />
+      {/* <Drawer.Screen name="Components" component={ComponentsStack} /> */}
+      {renderAccount()}
       <Drawer.Screen name="Stores" component={StoresStack} />
+      <Drawer.Screen name="Articles" component={ArticlesStack} />
+      <Drawer.Screen name="Store" component={StoreStack} />
+      <Drawer.Screen name="Settings" component={SettingsStack} />
+      <Drawer.Screen name="Shopping" component={CheckoutStack} />
     </Drawer.Navigator>
   );
 }

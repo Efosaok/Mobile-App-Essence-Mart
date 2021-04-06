@@ -4,10 +4,13 @@ import { Block, Text, theme } from "galio-framework";
 
 import Icon from "./Icon";
 import nowTheme from "../constants/Theme";
+import { useUserContext } from "../context/UserContext";
 
-class DrawerItem extends React.Component {
-  renderIcon = () => {
-    const { title, focused } = this.props;
+const DrawerItem = (props) => {
+  const { logoutSuccess } = useUserContext()
+
+  const renderIcon = () => {
+    const { title, focused } = props;
 
     switch (title) {
       case "Stores":
@@ -183,48 +186,56 @@ class DrawerItem extends React.Component {
         return null;
     }
   };
+  const { focused, title, navigation, to } = props;
 
-  render() {
-    const { focused, title, navigation, to } = this.props;
+  const containerStyles = [
+    styles.defaultStyle,
+    focused ? [styles.activeStyle, styles.shadow] : null
+  ];
 
-    const containerStyles = [
-      styles.defaultStyle,
-      focused ? [styles.activeStyle, styles.shadow] : null
-    ];
-
-    return (
-      <TouchableOpacity
-        style={{ height: 60 }}
-        onPress={() =>
-          title == "GETTING STARTED"
-            ? Linking.openURL(
-                "https://demos.creative-tim.com/now-ui-pro-react-native/docs/"
-              ).catch(err => console.error("An error occurred", err))
-            : navigation.navigate(title == 'LOGOUT' ? 'Onboarding' : to || title)
-        }
-      >
-        <Block flex row style={containerStyles}>
-          <Block middle flex={0.1} style={{ marginRight: 5 }}>
-            {this.renderIcon()}
-          </Block>
-          <Block row center flex={0.9}>
-            <Text
-              style={{
-                fontFamily: "montserrat-regular",
-                textTransform: "uppercase",
-                fontWeight: "300"
-              }}
-              size={12}
-              bold={focused ? true : false}
-              color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            >
-              {title}
-            </Text>
-          </Block>
-        </Block>
-      </TouchableOpacity>
-    );
+  const logoutUser = () => {
+    if (title == 'LOGOUT') {
+      logoutSuccess()
+      .then(() => {
+        navigation.navigate('Onboarding')
+      })
+    } else if (title == 'Settings') {
+      navigation.navigate('Settings', { screen: 'Settings' })
+    } else if (title == "GETTING STARTED") {
+      Linking.openURL(
+        "https://demos.creative-tim.com/now-ui-pro-react-native/docs/"
+      ).catch(err => console.error("An error occurred", err))
+    } else if (to) {
+      navigation.navigate(to)
+    }
   }
+
+  return (
+    <TouchableOpacity
+      style={{ height: 60 }}
+      onPress={() => logoutUser()}
+    >
+      <Block flex row style={containerStyles}>
+        <Block middle flex={0.1} style={{ marginRight: 5 }}>
+          {renderIcon()}
+        </Block>
+        <Block row center flex={0.9}>
+          <Text
+            style={{
+              fontFamily: "montserrat-regular",
+              textTransform: "uppercase",
+              fontWeight: "300"
+            }}
+            size={12}
+            bold={focused ? true : false}
+            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
+          >
+            {title}
+          </Text>
+        </Block>
+      </Block>
+    </TouchableOpacity>
+  );
 }
 
 const styles = StyleSheet.create({

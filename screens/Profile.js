@@ -1,16 +1,58 @@
-import React from 'react';
-import { StyleSheet, Dimensions, ScrollView, Image, ImageBackground, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Dimensions, ScrollView, Image, ImageBackground, Platform, Alert } from 'react-native';
 import { Block, Text, theme, Button as GaButton } from 'galio-framework';
 
-import { Button } from '../components';
+import { Button, Input } from '../components';
 import { Images, nowTheme } from '../constants';
 import { HeaderHeight } from '../constants/utils';
+import { useUserContext } from '../context/UserContext';
+import firebase from 'firebase';
 
 const { width, height } = Dimensions.get('screen');
 
 const thumbMeasure = (width - 48 - 32) / 3;
 
 const Profile = () => {
+  const { user } = useUserContext();
+
+  const sendEmailVerification = () => {
+    const currentUser = firebase.auth().currentUser
+    currentUser.sendEmailVerification()
+    .then(function() {
+      Alert.alert(null, 'Verification email sent.', [
+        { text: "OK", onPress: () => console.log("OK Pressed") }
+      ])
+      const timeout = setTimeout(() => {
+        currentUser.reload()
+        clearTimeout(timeout)
+        console.log('timeout -- timeout')
+      }, 1000);
+      // Verification email sent.
+    })
+    .catch(function(error) {
+      // Error occurred. Inspect error.code.
+      Alert.alert(null, error.message || error, [
+        { text: "OK", onPress: () => console.log("OK Pressed") }
+      ])
+    });
+  }
+
+  const getVerificationUI = () => {
+    if (user && !user.emailVerified) {
+      return (
+        <Button
+          onPress={sendEmailVerification}
+          color="SECONDARY"
+          style={{ height: 44, marginHorizontal: 5, elevation: 0 }}
+          textStyle={{ fontSize: 16 }}
+          round
+        >
+          Verify my profile
+        </Button>
+      )
+    }
+  }
+
   return (
     <Block style={{
       flex: 1,
@@ -39,7 +81,7 @@ const Profile = () => {
                     }}
                     color='#ffffff'
                     >
-                    Ryan Scheinder
+                    {(user && user.displayName) || "Teni Makanaki"}
                   </Text>
 
                   <Text
@@ -54,7 +96,7 @@ const Profile = () => {
                       opacity: .8
                     }}
                   >
-                    Photographer
+                    {user && user.emailVerified && "Verified" }
                   </Text>
                 </Block>
                 <Block style={styles.info}>
@@ -66,10 +108,10 @@ const Profile = () => {
                         color="white"
                         style={{ marginBottom: 4, fontFamily: 'montserrat-bold' }}
                       >
-                        2K
+                        2
                       </Text>
                       <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="white">
-                        Friends
+                        Delivered
                       </Text>
                     </Block>
 
@@ -79,10 +121,10 @@ const Profile = () => {
                         size={18}
                         style={{ marginBottom: 4, fontFamily: 'montserrat-bold' }}
                       >
-                        26
+                        3
                       </Text>
                       <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="white">
-                        Comments
+                        In Progress
                         </Text>
                     </Block>
 
@@ -92,10 +134,10 @@ const Profile = () => {
                         size={18}
                         style={{ marginBottom: 4, fontFamily: 'montserrat-bold' }}
                       >
-                        48
+                        4
                       </Text>
                       <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="white">
-                        Bookmarks
+                        Arrived
                       </Text>
                     </Block>
 
@@ -112,30 +154,9 @@ const Profile = () => {
               style={{ position: 'absolute', width: width, top: height * 0.6 - 26, zIndex: 99 }}
             >
               <Button style={{ width: 114, height: 44, marginHorizontal: 5, elevation: 0 }} textStyle={{ fontSize: 16 }} round>
-                Follow
+                Edit
               </Button>
-              <GaButton
-                round
-                onlyIcon
-                shadowless
-                icon="twitter"
-                iconFamily="Font-Awesome"
-                iconColor={nowTheme.COLORS.WHITE}
-                iconSize={nowTheme.SIZES.BASE * 1.375}
-                color={'#888888'}
-                style={[styles.social, styles.shadow]}
-              />
-              <GaButton
-                round
-                onlyIcon
-                shadowless
-                icon="pinterest"
-                iconFamily="Font-Awesome"
-                iconColor={nowTheme.COLORS.WHITE}
-                iconSize={nowTheme.SIZES.BASE * 1.375}
-                color={'#888888'}
-                style={[styles.social, styles.shadow]}
-              />
+              {getVerificationUI()}
             </Block>
           </Block>
         </ImageBackground>
@@ -146,39 +167,9 @@ const Profile = () => {
       <Block flex={0.4} style={{ padding: theme.SIZES.BASE, marginTop: 90}}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <Block flex style={{ marginTop: 20 }}>
-            <Block middle>
-              <Text
-                style={{
-                  color: '#2c2c2c',
-                  fontWeight: 'bold',
-                  fontSize: 19,
-                  fontFamily: 'montserrat-bold',
-                  marginTop: 15,
-                  marginBottom: 30,
-                  zIndex: 2
-                }}
-              >
-                About me
-                  </Text>
-              <Text
-                size={16}
-                muted
-                style={{
-                  textAlign: 'center',
-                  fontFamily: 'montserrat-regular',
-                  zIndex: 2,
-                  lineHeight: 25,
-                  color: '#9A9A9A',
-                  paddingHorizontal: 15
-                }}
-              >
-                An artist of considerable range, named Ryan — the name has taken by Melbourne has raised,
-                Brooklyn-based Nick Murphy — writes, performs and records all of his own music.
-                  </Text>
-            </Block>
             <Block row style={{ paddingVertical: 14, paddingHorizontal: 15 }} space="between">
               <Text bold size={16} color="#2c2c2c" style={{ marginTop: 3 }}>
-                Album
+                History
                   </Text>
               <Button
                 small

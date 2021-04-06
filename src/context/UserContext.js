@@ -6,6 +6,7 @@ import firebase from '../database/firebase';
 
 export const initialState = {
   token: '',
+  refreshToken: '',
   isAuthenticated: null,
   enlistHide: false,
   partners: [],
@@ -16,15 +17,19 @@ export const initialState = {
 const reducer = (state, action) => {
 
   switch (action.type) {
-    case 'SET_USER':
+    case 'SET_USER': {
+      const { user } = action.payload
+      const stsTokenManager = user && user.stsTokenManager
       return {
         ...state,
         user: {...state.user, ...action.payload.user },
-        token: action.data.token,
+        token: stsTokenManager && stsTokenManager.accessToken,
+        refreshToken: stsTokenManager && stsTokenManager.refreshToken,
         isLoggedIn: !!action.payload.user,
         partners: action.data.partners || [],
-        isAuthenticated: true
+        isAuthenticated: action.payload.user ? true : false
       };
+    }
 
     case 'SET_PARTNERS':
       return {...state, partners: action.data};

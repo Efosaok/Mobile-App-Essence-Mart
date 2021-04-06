@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -8,11 +8,12 @@ import {
   Linking
 } from "react-native";
 import { Block, Text, theme } from "galio-framework";
-import { useSafeArea } from "react-native-safe-area-context";
+// import { useSafeArea } from "react-native-safe-area-context";
 import Images from "../constants/Images";
 import { DrawerItem as DrawerCustomItem, Icon } from "../components";
 
 import nowTheme from "../constants/Theme";
+import { useUserContext } from "../context/UserContext";
 
 const { width } = Dimensions.get("screen");
 
@@ -24,18 +25,32 @@ function CustomDrawerContent({
   state,
   ...rest
 }) {
-  const insets = useSafeArea();
-  const screens = [
+  const { user, isAuthenticated } = useUserContext()
+  const [screens, setScreens] = useState([
     { title: "Stores", to: 'Home' },
-    { title: "Login / Register", to: 'Account' },
-    { title: "Grocery Direct", to: 'Grocery Direct' },
-    { title: "Track Orders", to: 'Track Orders' },
-    { title: "Notification", to: 'Notification' },
+    { title: "Login / Register", to: "Account" },
+    { title: "Grocery Direct" },
+    { title: "Track Orders" },
+    { title: "Notification" },
     // { title: "Components", to: 'Components' },
     // { title: "Articles", to: 'Articles' },
     // { title: "Profile", to: 'Profile' },
     // { title: "Account", to: 'Account' },
-  ];
+  ])
+
+  useEffect(() => {
+    let items = JSON.parse(JSON.stringify(screens))
+    if (isAuthenticated) {
+      items = items.map((item) => {
+        if (item.to === "Account") {
+          return { title: "Profile", to: "Profile" }
+        }
+        return item
+      })
+      setScreens(items)
+    }
+  }, [isAuthenticated])
+
   return (
     <Block
       style={styles.container}
@@ -79,7 +94,7 @@ function CustomDrawerContent({
         <DrawerCustomItem title="Settings" navigation={navigation}/>
         <DrawerCustomItem title="Call Customer Care" navigation={navigation}/>
         <DrawerCustomItem title="Contact US / App Help" navigation={navigation}/>
-        <DrawerCustomItem title="LOGOUT" navigation={navigation}/>
+        {isAuthenticated && <DrawerCustomItem title="LOGOUT" navigation={navigation}/>}
         </ScrollView>
       </Block>
     </Block>

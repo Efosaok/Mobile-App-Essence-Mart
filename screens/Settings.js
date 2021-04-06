@@ -1,23 +1,24 @@
-import React from "react";
+import React, { Fragment, useState } from "react";
+// import { SafeAreaView } from "react-native-safe-area-context";
 import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ScrollView
+  SafeAreaView
 } from "react-native";
 import { Block, Text, theme, Icon } from "galio-framework";
 import { Switch } from "../components";
 
 import nowTheme from "../constants/Theme";
 
-export default class Settings extends React.Component {
-  state = {};
+const Settings = (props) => {
+  const [state, setState] = useState({});
 
-  toggleSwitch = switchNumber =>
-    this.setState({ [switchNumber]: !this.state[switchNumber] });
+  const toggleSwitch = switchNumber =>
+    setState({ [switchNumber]: !state[switchNumber] });
 
-  renderItem = ({ item }) => {
-    const { navigate } = this.props.navigation;
+  const renderItem = ({ item }) => {
+    const { navigate } = props.navigation;
 
     switch (item.type) {
       case "switch":
@@ -25,8 +26,8 @@ export default class Settings extends React.Component {
           <Block row middle space="between" style={styles.rows}>
             <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="#525F7F">{item.title}</Text>
             <Switch
-              onValueChange={() => this.toggleSwitch(item.id)}
-              value={this.state[item.id]}
+              onValueChange={() => toggleSwitch(item.id)}
+              value={state[item.id]}
             />
           </Block>
         );
@@ -50,78 +51,79 @@ export default class Settings extends React.Component {
     }
   };
 
-  render() {
-    const recommended = [
-      { title: "Use FaceID to sign in", id: "face", type: "switch" },
-      { title: "Auto-Lock security", id: "autolock", type: "switch" },
-      { title: "Notifications", id: "NotificationsSettings", type: "button" }
-    ];
+  const settings = [
+    {
+      title: "Recommended Settings",
+      desc: "These are the most important settings",
+      items: [
+        { title: "Use FaceID to sign in", id: "face", type: "switch" },
+        { title: "Auto-Lock security", id: "autolock", type: "switch" },
+        { title: "Notifications", id: "NotificationsSettings", type: "button" }
+      ]
+    },
+    {
+      title: "Payment Settings",
+      desc: "These are also important settings",
+      items: [
+        { title: "Manage Payment Options", id: "Payment", type: "button" },
+        { title: "Manage Gift Cards", id: "gift", type: "button" }
+      ]
+    },
+    {
+      title: "Privacy Settings",
+      desc: "Third most important settings",
+      items: [
+        { title: "User Agreement", id: "Agreement", type: "button" },
+        { title: "Privacy", id: "Privacy", type: "button" },
+        { title: "About", id: "About", type: "button" }
+      ]
+    }
+  ]
 
-    const payment = [
-      { title: "Manage Payment Options", id: "Payment", type: "button" },
-      { title: "Manage Gift Cards", id: "gift", type: "button" }
-    ];
-
-    const privacy = [
-      { title: "User Agreement", id: "Agreement", type: "button" },
-      { title: "Privacy", id: "Privacy", type: "button" },
-      { title: "About", id: "About", type: "button" }
-    ];
-
+  const ItemComponent = (props) => {
     return (
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.settings}
-      >
-        <FlatList
-          data={recommended}
-          keyExtractor={(item, index) => item.id}
-          renderItem={this.renderItem}
-          ListHeaderComponent={
-            <Block center style={styles.title}>
-              <Text style={{ fontFamily: 'montserrat-bold', paddingBottom: 5 }} size={theme.SIZES.BASE} color={nowTheme.COLORS.TEXT}>
-                Recommended Settings
-              </Text>
-              <Text style={{ fontFamily: 'montserrat-regular' }} size={12} color={nowTheme.COLORS.CAPTION} color={nowTheme.COLORS.TEXT}>
-                These are the most important settings
-              </Text>
-            </Block>
-          }
-        />
+      <Fragment>
         <Block center style={styles.title}>
           <Text style={{ fontFamily: 'montserrat-bold', paddingBottom: 5 }} size={theme.SIZES.BASE} color={nowTheme.COLORS.TEXT}>
-            Payment Settings
+            {props && props.item && props.item.title}
           </Text>
           <Text style={{ fontFamily: 'montserrat-regular' }} size={12} color={nowTheme.COLORS.CAPTION} color={nowTheme.COLORS.TEXT}>
-            These are also important settings
-          </Text>
-        </Block>
-
-        <FlatList
-          data={payment}
-          keyExtractor={(item, index) => item.id}
-          renderItem={this.renderItem}
-        />
-
-        <Block center style={styles.title}>
-          <Text style={{ fontFamily: 'montserrat-bold', paddingBottom: 5 }} size={theme.SIZES.BASE} color={nowTheme.COLORS.TEXT}>
-            Privacy Settings
-          </Text>
-          <Text style={{ fontFamily: 'montserrat-regular' }} size={12} color={nowTheme.COLORS.CAPTION} color={nowTheme.COLORS.TEXT}>
-            Third most important settings
+            {props && props.item && props.item.desc}
           </Text>
         </Block>
         <FlatList
-          data={privacy}
+          data={(props && props.item && props.item.items) || []}
           keyExtractor={(item, index) => item.id}
-          renderItem={this.renderItem}
+          renderItem={renderItem}
         />
-      </ScrollView>
-    );
+      </Fragment>
+    )
   }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <Block flex style={styles.wrapper}>
+        <Block flex row>
+          <FlatList
+            data={settings}
+            keyExtractor={(item, index) => item.title.split(' ').join('-')}
+            renderItem={ItemComponent}
+          />
+        </Block>
+      </Block>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    paddingVertical: 10,
+  },
+  wrapper: {
+    paddingBottom: 10
+  },
   settings: {
     paddingVertical: theme.SIZES.BASE / 3
   },
@@ -135,3 +137,5 @@ const styles = StyleSheet.create({
     marginBottom: theme.SIZES.BASE / 2
   }
 });
+
+export default Settings;

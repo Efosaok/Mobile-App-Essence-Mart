@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+
 import {
   StyleSheet,
   ImageBackground,
@@ -13,8 +14,8 @@ import { Button, Icon, Input } from '../components';
 import { Images, nowTheme } from '../constants';
 import { useUserContext } from '../context/UserContext';
 import firebase from "../shared/firebase";
+import { useLocationContext } from '../context/LocationContext';
 import Loader from '../components/Loader';
-import { createUser } from '../shared/methods/Users';
 
 const { width, height } = Dimensions.get('screen');
 
@@ -24,8 +25,8 @@ const DismissKeyboard = ({ children }) => (
 
 function Register ({ navigation }) {
   const { setUser, isLoggedIn } = useUserContext()
+  const { lastRouteBeforeAuth } = useLocationContext()
   const [state, setState] = useState({
-    displayName: '',
     email: '', 
     password: '',
     isLoading: false,
@@ -41,38 +42,32 @@ function Register ({ navigation }) {
     }
   },[]);
 
-  const displayError = (message) =>
-    Alert.alert(
-      null,
-      `${message}`,
-      [{ text: "OK", onPress: () => console.log("OK Pressed") }]
-    );
-
   const updateInputVal = (val, prop) => {
     const currentState = {...state};
     currentState[prop] = val;
     setState(currentState);
   }
 
-  const sendEmailVerification = () => {
-    firebase.auth().currentUser.sendEmailVerification()
-    .then(function() {
-      Alert.alert(null, 'Verification email sent.', [
-        { text: "OK", onPress: () => navigation.navigate('Login') }
-      ])
-      // Verification email sent.
-    })
-    .catch(function(error) {
-      // Error occurred. Inspect error.code.
-      Alert.alert(null, error.message || error, [
-        { text: "OK", onPress: () => console.log("OK Pressed") }
-      ])
-    });
+  const redirect = () => {
+    if (lastRouteBeforeAuth) {
+      navigation.navigate(...lastRouteBeforeAuth)
+    } else {
+      navigation.navigate('Stores', { screen: 'Stores' })
+    }
   }
 
-  const registerUser = () => {
+  const displayError = (message) =>
+    Alert.alert(
+      null,
+      `${message}`,
+      [
+        { text: "OK", onPress: () => console.log("OK Pressed") }
+      ],
+    );
+
+  const loginUser = () => {
     if(state.email === '' && state.password === '') {
-      displayError('Enter details to signup!')
+      displayError('Enter details to login!')
     } else {
       setState({
         ...state,
@@ -80,35 +75,23 @@ function Register ({ navigation }) {
       })
       firebase
       .auth()
-      .createUserWithEmailAndPassword(state.email, state.password)
+      .signInWithEmailAndPassword(state.email, state.password)
       .then((res) => {
-        var user = firebase.auth().currentUser;
-        user.updateProfile({
-          displayName: state.displayName
+        setState({
+          ...state,
+          isLoading: false,
+          email: '', 
+          password: ''
         })
-        .then(() => {
-          createUser(user)
-          .then((res) => {
-            setState({
-              ...state,
-              isLoading: false,
-              displayName: '',
-              email: '', 
-              password: ''
-            })
-            user.reload()
-            sendEmailVerification()
-            console.log('User added!', res.get().then((data) => data));
-          })
-        })
+        redirect()
       })
       .catch(error => {
+        displayError(error.message || error)
         setState({
           ...state,
           errorMessage: error.message,
           isLoading: false
         })
-        displayError(error.message || error)
       })      
     }
   }
@@ -135,7 +118,7 @@ function Register ({ navigation }) {
                       color="#333"
                       size={24}
                     >
-                      Register
+                      Login
                     </Text>
                   </Block>
 
@@ -156,6 +139,7 @@ function Register ({ navigation }) {
                       round
                       onlyIcon
                       shadowless
+                      onPress={() => console.log('ddd')}
                       icon="facebook"
                       iconFamily="Font-Awesome"
                       iconColor={theme.COLORS.WHITE}
@@ -191,22 +175,6 @@ function Register ({ navigation }) {
                                 size={16}
                                 color="#ADB5BD"
                                 name="email-852x"
-                                family="NowExtra"
-                                style={styles.inputIcons}
-                              />
-                            }
-                          />
-                        </Block>
-                        <Block width={width * 0.8} style={{ marginBottom: 5 }}>
-                          <Input
-                            placeholder="Display Name"
-                            style={styles.inputs}
-                            onChangeText={(val) => updateInputVal(val, 'displayName')}
-                            iconContent={
-                              <Icon
-                                size={16}
-                                color="#ADB5BD"
-                                name="profile-circle"
                                 family="NowExtra"
                                 style={styles.inputIcons}
                               />
@@ -251,21 +219,21 @@ function Register ({ navigation }) {
                         </Block>
                       </Block>
                       <Block center>
-                        <Button onPress={registerUser} color="primary" round style={styles.createButton}>
+                        <Button onPress={loginUser} color="primary" round style={styles.createButton}>
                           <Text
                             style={{ fontFamily: 'montserrat-bold' }}
                             size={14}
                             color={nowTheme.COLORS.WHITE}
                           >
-                            Get Started
+                            Login
                           </Text>
                         </Button>
                       </Block>
                       <Block>
                         <Text 
                           // style={styles.loginText}
-                          onPress={() => navigation.navigate('Account', { screen: 'Login' })}>
-                          Already have an account? <Text style={{ color: 'black', fontWeight: 'bold' }}>Signin</Text>
+                          onPress={() => navigation.navigate('Account', { screen: 'Register' })}>
+                          Need an account? <Text style={{ color: 'black', fontWeight: 'bold' }}>Register</Text>
                         </Text>
                       </Block>
                     </Block>
