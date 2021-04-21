@@ -25,7 +25,7 @@
     "expo-status-bar": "~1.0.3",
     "firebase": "^7.9.0",
     "galio-framework": "^0.7.1",
-    "lottie-react-native": "^3.5.0",
+    "lottie-react-native": "~2.6.1",
     "prop-types": "^15.7.2",
     "react": "^17.0.1",
     "react-dom": "16.13.1",

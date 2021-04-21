@@ -8,9 +8,7 @@ const TotalComponent = () => {
   const { cart } = useCartContext()
 
   const Quantity = (item) => Number(item.quantity || 1)
-  const getCurrency = (price, currency, num) => price.includes(currency) ? price.split(currency)[1] : (num || 0)
-  const getPrice = (price) => getCurrency(price, '$', getCurrency(price, '£'))
-  const IndexedPrice = (item) => Number((item.price && getPrice(item.price)) || 0);
+  const IndexedPrice = (item) => Number(item.price || 0);
 
   const items = cart && cart.map((item) => Quantity(item) * IndexedPrice(item));
   const total = items && items.reduce((prev, amt) => Number(amt) + prev, 0);
@@ -31,7 +29,10 @@ const TotalComponent = () => {
 
         <Block style={totalStyle}>
           <Text>Total - </Text>
-          <Text style={{ fontFamily: 'montserrat-bold' }}>${parseFloat(totalAmountInForiegnCurrency).toFixed(2) || 0}</Text>
+          <Text style={{ fontFamily: 'montserrat-bold' }}>
+            {(cart[0] && cart[0].currency) || '₦'}
+            {parseFloat(totalAmountInForiegnCurrency).toFixed(2) || 0}
+          </Text>
         </Block>
       </Block>
 

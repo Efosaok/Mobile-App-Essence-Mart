@@ -7,11 +7,7 @@ import { useCartContext } from '../../context/CartContext';
 import nowTheme from "../../constants/Theme";
 
 
-const getPriceCurr = (price, currency, num) => price.includes(currency) ? price.split(currency)[1] : (num || 0)
-const getPrice = (price) => getPriceCurr(price, '$', getPriceCurr(price, '£'))
-const IndexedPrice = (item) => Number((item.price && getPrice(item.price)) || 0);
-
-const getCurrency = (price) => price.includes('$') ? '$' : '£'
+const IndexedPrice = (item) => Number(item.price || 0);
 
 const Item = () => {
   const { cart, removeItemInCart, increaseItemQuantity, decreaseItemQuantity } = useCartContext();
@@ -28,10 +24,10 @@ const Item = () => {
     <Block style={{ ...(cart && (index + 1 === cart.length)) ? lastItemStyle : containerStyle, paddingTop: index == 0 ? 50 : 10 }}>
       <Image source={{ uri: item.imageUrl }} style={imageStyle} />
       <Block style={textStyle}>
-        <Text style={{ color: '#2e2f30', fontFamily: 'montserrat-regular' }}>{item.description.split('\n').join(' ').trim()}</Text>
+        <Text style={{ color: '#2e2f30', fontFamily: 'montserrat-regular' }}>{item.description && item.description.split('\n').join(' ').trim()}</Text>
         <Block flex row>
           <Block style={priceStyle}>
-            <Text style={{ color: '#2e2f30', fontFamily: 'montserrat-bold', fontSize: 12, }}>{getCurrency(item.price)}{IndexedPrice(item)}</Text>
+            <Text style={{ color: '#2e2f30', fontFamily: 'montserrat-bold', fontSize: 12, }}>{item.currency}{IndexedPrice(item)}</Text>
           </Block>
           <Block center style={{ marginLeft: 10, paddingHorizontal: 10, alignItems: 'center', marginTop: 3, borderRadius: 3, backgroundColor: nowTheme.COLORS.PRIMARY }}>
             <Text onPress={() => removeItemInCart(index)} style={{ color: '#fff', fontFamily: 'montserrat-regular', fontSize: 12 }}>Remove</Text>

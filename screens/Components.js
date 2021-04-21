@@ -480,7 +480,7 @@ class Components extends React.Component {
 
 
   renderCards = () => {
-    scrollX = new Animated.Value(0);
+    // scrollX = new Animated.Value(0);
     cards = [articles[5], articles[6]]
     return (
       <Block flex style={styles.group}>

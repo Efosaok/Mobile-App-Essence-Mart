@@ -64,7 +64,8 @@ export default function DetailsScreen({ navigation }) {
     try {
       data = JSON.parse(data)
     } catch ( e ) {
-      Alert.alert(null, e.message || e, [{ text: "OK", onPress: () => console.log("OK Pressed") }])
+      console.log('e.message ' + e.message || e)
+      // Alert.alert(null, e.message || e, [{ text: "OK", onPress: () => console.log("OK Pressed") }])
       setIsLoading(false)
     }
     // check if this message concerns us
@@ -97,8 +98,8 @@ export default function DetailsScreen({ navigation }) {
         <Block flex row style={{ marginTop: 2, marginVertical: 8, }}>
           <WebView
             ref={WEBVIEW_REF}
-            source={{ uri: `${ isCheckout ? store.cartLink : store.link }` }}
-            injectedJavaScript={isCheckout ? script(store) : ""}
+            source={{ uri: `${ isCheckout && !store.cartElementClass ? store.cartLink : store.link }` }}
+            injectedJavaScript={isCheckout ? script(store, store.cartElementClass) : ""}
             javaScriptEnabled={true}
             onMessage={onMessage}
             onNavigationStateChange={onNavigationStateChange}
