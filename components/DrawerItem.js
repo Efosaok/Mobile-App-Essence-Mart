@@ -199,6 +199,11 @@ const DrawerItem = (props) => {
       .then(() => {
         navigation.navigate('Onboarding')
       })
+      .catch(function(error) {
+        console.log('There has been a problem with your fetch operation: ' + error.message);
+         // ADD THIS THROW error
+        // throw error;
+      });
     } else if (title == 'Settings') {
       navigation.navigate('Settings', { screen: 'Settings' })
     } else if (title == "GETTING STARTED") {

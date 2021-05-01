@@ -92,8 +92,8 @@ const useUser = () => {
     .catch(function(error) {
       console.log('There has been a problem with your fetch operation: ' + error.message);
        // ADD THIS THROW error
-        throw error;
-      })
+      // throw error;
+    })
   };
 
   const setEnlistHide = (enlistHide) => {

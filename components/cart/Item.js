@@ -68,7 +68,7 @@ const Item = () => {
     <FlatList
       data={cart || []}
       renderItem={_renderItem}
-      keyExtractor={(item, index) => index}
+      keyExtractor={(item, index) => index.toString()}
     />
   );
 }

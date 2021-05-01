@@ -70,6 +70,20 @@ function Register ({ navigation }) {
     });
   }
 
+  // const registerWithFB = () => {
+  //   try {
+  //     onFacebookButtonPress()
+  //     .then((res) => {
+  //       console.log(res)
+  //     })
+  //     .catch((err) => {
+  //       console.log(err)
+  //     })
+  //   } catch (error) {
+  //     console.log('errorerrorerror', error)
+  //   }
+  // }
+
   const registerUser = () => {
     if(state.email === '' && state.password === '') {
       displayError('Enter details to signup!')
@@ -158,6 +172,7 @@ function Register ({ navigation }) {
                       shadowless
                       icon="facebook"
                       iconFamily="Font-Awesome"
+                      onPress={registerWithFB}
                       iconColor={theme.COLORS.WHITE}
                       iconSize={theme.SIZES.BASE * 1.625}
                       color={nowTheme.COLORS.FACEBOOK}

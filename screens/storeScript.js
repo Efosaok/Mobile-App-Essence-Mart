@@ -15,6 +15,7 @@ export const script = (store, simulateClick) => `!(function($) {
     if (price.includes('£')) return '£';
     if (price.includes('₦')) return '₦';
     if (price.includes('USD')) return 'USD'
+    if (price.includes('NGN')) return 'NGN'
     if (price.includes('EUR')) return 'EUR'
     // default
     if(setDefault) return '₦';
@@ -24,7 +25,8 @@ export const script = (store, simulateClick) => `!(function($) {
     switch (attr) {
       case 'src':
         var src = (elem && elem.src) || '';
-        var content = (elem && (elem.value || elem.content))
+        var srcset = src || matchUrl(src) ? '' : (elem && elem.srcset) || '';
+        var content = (elem && (srcset.split(', ')[0] || elem.value || elem.content))
         content = content && content.replace('//media', 'https://media')
         // return src.includes('data:image/svg;base64') ? content : src;
         src = content || src;
@@ -37,12 +39,17 @@ export const script = (store, simulateClick) => `!(function($) {
 
   var Quantity = (index) => {
     var quantity = getUniqueItem($$('${store.itemQuantityElementClass}')[index || 0], 'value');
+    quantity = (quantity && quantity.replace('Qty:', '') || '')
+    quantity = (quantity && quantity.replace('Quantity: ', '') || '')
     return Number(quantity || 1)
   }
 
   var Price = (data, type, index) => {
     let price = data && data.replace(' each', '');
-    price = price && price.split(',').join('') || price;
+    price = (price && price.split(',').join('')) || price;
+    price = (price && price.split('Now ')[1]) || price;
+    price = (price && price.split('Item Price').join('')) || price;
+    price = (price && price.split(':').join('')) || price
 
     // Get Exact currency
     var currency = getCurrency(price);
@@ -79,6 +86,18 @@ export const script = (store, simulateClick) => `!(function($) {
       case 'HP':
       case 'ALL BEAUTY':
       case 'HAWES & CURTIS':
+      case '6PM':
+      case 'FIGLEAVES':
+      case 'WOLF & BADGER':
+      case 'EVANS':
+      case 'ZAPPOS':
+      case 'YANKEE CANDLES':
+      // case "VICTORIA'S SECRET":
+      case 'TILLYS':
+      case 'MARKS & SPENCER':
+      case 'KOHLS':
+      case 'CLOTHING UNDER 10':
+      case 'BARE NECESSITIES':
         return Quantity(index);
 
       default:
@@ -89,14 +108,8 @@ export const script = (store, simulateClick) => `!(function($) {
   var sanitizeData = function (data, type, index) {
     switch (type) {
       case 'PRICE': {
-        // let price = data && data.replace(' each', '');
-        // price = price && price.split(',').join('') || price;
-        // var currency = getCurrency(price);
-        // var newPrice = currency ? price.split(currency)[1] : (price || 0);
         var newPrice = Price(data, '${store.title}', index);
 
-        // divide price by quantity if store was Everything five pounds
-        // var isEverythin5Pounds = '${store.title}' === 'EVERYTHING 5 POUNDS';
         var quantity = splitPriceByQuantity('${store.title}', index);
         return (quantity && quantity > 1) ? String(newPrice / quantity) : newPrice;
       }
@@ -104,7 +117,15 @@ export const script = (store, simulateClick) => `!(function($) {
       case 'CURRENCY': {
         let price = data && data.replace(' each', '');
         price = price && price.split(',').join('') || price;
+        price = (price && price.split('Now ')[1]) || price;
+        price = (price && price.split('Item Price').join('')) || price;
+        price = (price && price.split(':').join('')) || price
         return getCurrency(price, true);
+      }
+
+      case 'QUANTITY': {
+        data = (data && data.replace('Qty:', '') || data)
+        return ((data && data.replace('Quantity:', '') || data) || '').trim()
       }
 
       default:
@@ -122,9 +143,9 @@ export const script = (store, simulateClick) => `!(function($) {
       }
       data = INFOs;
     } else if (elem && elem.length > 1) {
-      data = sanitizeQuery(elem[0], attr) || sanitizeQuery(elem[0], 'src') || (elem[0] && elem[0].value);
+      data = sanitizeQuery(elem[0], attr) || sanitizeQuery(elem[0], 'src') || (elem[0] && elem[0].value) || (elem && elem[0].textContent);
     } else {
-      data = sanitizeQuery(elem, attr) || sanitizeQuery(elem, 'src') || (elem && elem.value);
+      data = sanitizeQuery(elem, attr) || sanitizeQuery(elem, 'src') || (elem && elem.value) || (elem && elem.textContent);
     }
 
     return sanitizeData(data, type, index);
@@ -148,10 +169,11 @@ export const script = (store, simulateClick) => `!(function($) {
       for ( var i in $$(getIdentifier()) ) {
         carts.push({
           description: getUniqueItem($$('${store.itemDescriptionElementName}')[i], 'textContent'),
-          price: getUniqueItem($$('${store.itemPriceElementClass}')[i], 'textContent', 'PRICE', i),
+          brand: getUniqueItem($$('${store.itemBrandElementName}')[i], 'textContent'),
+          price: getUniqueItem($$('${store.itemPriceElementClass}')[i], 'innerText', 'PRICE', i),
           currency: getUniqueItem($$('${store.itemPriceElementClass}')[i], 'textContent', 'CURRENCY'),
           imageUrl: getUniqueItem($$('${store.itemImageElementClass}')[i], 'src'),
-          quantity: getUniqueItem($$('${store.itemQuantityElementClass}')[i], 'value'),
+          quantity: getUniqueItem($$('${store.itemQuantityElementClass}')[i], 'value', 'QUANTITY'),
           link: getUniqueItem($$('${store.itemLinkElementClass}')[i], 'href'),
           color: getUniqueItem($$('${store.itemColorElementClass}')[i], 'innerText'),
           width: getUniqueItem($$('${store.itemWidthElementClass}')[i], 'innerText'),
@@ -160,6 +182,7 @@ export const script = (store, simulateClick) => `!(function($) {
           sleeveLength: getUniqueItem($$('${store.itemSleeveLengthElementClass}')[i], 'innerText'),
           chestSize: getUniqueItem($$('${store.itemChestSizeElementClass}')[i], 'innerText'),
           waistElement: getUniqueItem($$('${store.itemWaistElementClass}')[i], 'innerText'),
+          varaint: getUniqueItem($$('${store.itemVaraintElementClass}')[i], 'textContent'),
           info: getUniqueItem($$('${store.itemInfoElementClass}')[i], 'textContent', 'INFO'),
         });
       }
@@ -189,7 +212,7 @@ export const script = (store, simulateClick) => `!(function($) {
     //   if (!isClicked) elem.click();
     // }
 
-    addToCart();
+    // addToCart();
 
     true
   } catch (error) {

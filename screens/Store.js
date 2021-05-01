@@ -16,80 +16,121 @@ const LoadingIndicatorView = () => (
   </Block>
 )
 
+const WHITELIST = ["file://", 'http://', 'https://'];
+
 export default function DetailsScreen({ navigation }) {
+  const WEBVIEW_REF = React.createRef()
   const { store } = useStoreListContext()
   const { addToCart, cart, setCurrentStore } = useCartContext()
+  // TODO: Remove is checkout is not neccessary
   const [isCheckout, setIsCheckout] = useState(false)
+  const [currentURL, setCurrentURL] = useState(store.link)
+  const [URLs, setURLs] = useState([store.link])
   const [isLoading, setIsLoading] = useState(false)
+  const [buttonProps, setButtonProps] = useState({ cancelled: false, showButton: false })// cancel loading button
+  const [message, setMessage] = useState('')
 
-  const WEBVIEW_REF = React.createRef()
+  const updateBooleanProps = (show, cancel, checkout) => {
+    setButtonProps({ showButton: show, cancelled: cancel })
+    setIsCheckout(checkout)
+  }
+
+  useEffect(() => {
+    updateBooleanProps(false, null, false);
+    setIsLoading(true);
+    setCurrentURL(store.link)
+    setURLs([...URLs, store.link])
+    const redirectTo = 'window.location = "' + currentURL + '"';
+    WEBVIEW_REF.current && WEBVIEW_REF.current.injectJavaScript(redirectTo);
+    setIsLoading(false);
+    addToCart([])
+    return () => {}
+  }, [store])
+
 
   const onCheckout = () => {
-    console.log('onCheckout', cart)
-    if (!isCheckout) {
-      setIsCheckout(true)
-    } else if (cart && cart.length) {
-      navigation.navigate('Shopping', { screen: 'Cart' });
-    } else {
-      WEBVIEW_REF.current && WEBVIEW_REF.current.postMessage( "Post message from react native" );
-    }
+    setCurrentURL(store.cartLink)
+    updateBooleanProps(true, false, true);
+    WEBVIEW_REF.current && WEBVIEW_REF.current.postMessage( "Checkout" );
+  }
+
+  const onCancelLoading = () => {
+    setMessage('We did something wrong!\nSending report to the team');
+    // TODO: Remove timeout and do proper reporting, maybe to crashlytics or dedicated API
+    const timeout = setTimeout(() => {
+      updateBooleanProps(false, true, false);
+      setMessage('');
+      clearTimeout(timeout);
+    }, 3000);
   }
 
   const onNavigationStateChange = state => {
     const { url, title } = state;
     if (!url) return;
     setCurrentStore({ title: title || cart && cart.title })
-    console.log('url === store.link', url === store.link, url, store.link)
-    if (url === store.link) {
-      setIsCheckout(false)
-      console.log('onNavigationStateChange --- cart', cart)
-			// get transaction reference from url and verify transaction, then redirect
-      const redirectTo = 'window.location = "' + store.link + '"';
-      WEBVIEW_REF.current && WEBVIEW_REF.current.injectJavaScript(redirectTo);
+    setURLs([...URLs, url])
+  }
+
+  var $urlPattern = new RegExp('^' + store.cartLink, 'i');
+  const matchUrl = (value, vm) => {
+    return $urlPattern.test(value)
+  }
+
+  const getLastVisitedURL = () => {
+    return URLs[URLs.length - 1];
+  }
+
+  const getCarts = (data) => {
+    const lastVisitedURL = getLastVisitedURL()
+    if ( 'object' == typeof data && data.carts ) {
+      console.log('matchUrl(lastVisitedURL)', matchUrl(lastVisitedURL))
+      console.log('store.cartLink', store.cartLink)
+      console.log('lastVisitedURL', lastVisitedURL)
+      console.log('buttonProps.cancelled', buttonProps.cancelled)
+      console.log('isCheckout', isCheckout)
+      setIsLoading(false)
+      if (data.carts && data.carts.length) {
+        addToCart(data.carts)
+        setMessage('')
+        updateBooleanProps(false, false, false);
+        navigation.navigate('Shopping', { screen: 'Cart' });
+      } else if (!buttonProps.cancelled && isCheckout && matchUrl(lastVisitedURL)) {
+        setMessage(message || 'Ouch!, It seems we couldn\'t get your item out. \n Please sit back while we retry');
+        updateBooleanProps(true, false, true);
+        setIsLoading(true);
+        WEBVIEW_REF.current && WEBVIEW_REF.current.postMessage( "Checkout" );
+        // WEBVIEW_REF.current && WEBVIEW_REF.current.injectJavaScript(script(store));
+      }
     }
-		
-		if(url === 'https://standard.paystack.co/close') {
-      // handle webview removal
-      // You can either unmount the component, or
-      // Use a navigator to pop off the view
-    }
-  };
+  }
 
   const onMessage = async (e) => {
-    setIsLoading(true)
-    addToCart([])
-    // retrieve event data
-    var data = e.nativeEvent.data;
-    // maybe parse stringified JSON
+    setIsLoading(true);
     try {
-      data = JSON.parse(data)
+      var data = e.nativeEvent.data || [];
+      data = JSON.parse(data);
+      // console.log('e.nativeEvent', e.nativeEvent)
+      getCarts(data); // end the loading in getCarts
     } catch ( e ) {
-      console.log('e.message ' + e.message || e)
+      console.log('e.message ', JSON.parse(e.message) || JSON.parse(e))
       // Alert.alert(null, e.message || e, [{ text: "OK", onPress: () => console.log("OK Pressed") }])
       setIsLoading(false)
     }
-    // check if this message concerns us
-    if ( 'object' == typeof data && data.carts ) {
-      // proceed with URL open request
-      addToCart(data.carts)
-      setIsLoading(false)
-      navigation.navigate('Shopping', { screen: 'Cart' });
-    } else {
-      console.log('WEBVIEW_REF else statement')
-
-      WEBVIEW_REF.current && WEBVIEW_REF.current.injectJavaScript(script(store));
-    }
-    setIsLoading(false)
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      {isLoading && <Loader isLoading={isLoading} />}
+      {isLoading && 
+        <Loader
+          showButton={buttonProps.showButton}
+          text={message}
+          isLoading={isLoading}
+          onPress={onCancelLoading}
+        />}
       <Block flex center style={styles.wrapper}>
         <Block center>
           <Button textStyle={{ fontFamily: 'montserrat-regular', fontSize: 12 }}
             style={styles.button}
-            // onPress={() => props.navigation.navigate('Checkout')}
             onPress={onCheckout}
           >
             PROCEED TO CHECKOUT
@@ -98,17 +139,17 @@ export default function DetailsScreen({ navigation }) {
         <Block flex row style={{ marginTop: 2, marginVertical: 8, }}>
           <WebView
             ref={WEBVIEW_REF}
-            source={{ uri: `${ isCheckout && !store.cartElementClass ? store.cartLink : store.link }` }}
-            injectedJavaScript={isCheckout ? script(store, store.cartElementClass) : ""}
+            source={{ uri: currentURL }}
+            injectedJavaScript={script(store, store.cartElementClass)}
             javaScriptEnabled={true}
             onMessage={onMessage}
             onNavigationStateChange={onNavigationStateChange}
-            // onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
             injectedJavaScriptForMainFrameOnly={false}
             useWebKit={true}
+            originWhitelist={WHITELIST}
             javaScriptEnabledAndroid={true}
             renderLoading={LoadingIndicatorView}
-            onError={evnt => console.log(evnt.nativeEvent.description)}
+            onError={evnt => console.log('error webview', evnt.nativeEvent.description)}
             startInLoadingState={true}
           />
         </Block>

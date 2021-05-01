@@ -1,9 +1,11 @@
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 import AnimatedLoader from "react-native-animated-loader";
+import { Button } from '.';
+import { nowTheme } from '../constants';
 
 export default function Loader(props) {
-  const { isLoading, text } = props;
+  const { isLoading, text, onPress, showButton } = props;
 
   return (
     <AnimatedLoader
@@ -13,7 +15,13 @@ export default function Loader(props) {
       animationStyle={styles.lottie}
       speed={1}
     >
-      <Text>{text || 'Loading'}...</Text>
+      <Text style={{ textAlign: 'center' }}>{text || 'Loading'}...</Text>
+
+      {(onPress && showButton) &&
+      <Button onPress={onPress} small color="transparent" textStyle={{ color: nowTheme.COLORS.PRIMARY, fontSize: 14 }}>
+        Cancel
+      </Button>
+      }
     </AnimatedLoader>
   );
 }
