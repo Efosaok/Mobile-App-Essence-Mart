@@ -219,7 +219,8 @@ const Header = (props) => {
   const noShadow = ['Search', 'Categories', 'Deals', 'Pro', 'Profile'].includes(title);
   const headerStyles = [
     !noShadow ? styles.shadow : null,
-    transparent ? { backgroundColor: 'rgba(0,0,0,0)' } : null
+    transparent ? { backgroundColor: 'rgba(0,0,0,0)' } : null,
+    { paddingTop: 20 }
   ];
 
   function trunc(text) {

@@ -5,6 +5,7 @@ import CartComponent from "../components/cart";
 import Loader from '../components/Loader';
 import axios from "axios";
 import { useCartContext } from '../context/CartContext';
+import { getCurrency as fetchCurrency } from '../shared/methods/Currencies';
 
 const { width } = Dimensions.get('screen');
 
@@ -31,17 +32,27 @@ export default function Cart({ navigation }) {
     ])
   }
 
+
+  const getCurrencySymbol = (currency, setDefault) => {
+    if (currency.includes('$')) return 'USD';
+    if (currency.includes('£')) return 'EUR';
+    if (currency.includes('₦')) return 'NGN';
+    if (currency.includes('USD')) return 'USD'
+    if (currency.includes('NGN')) return 'NGN'
+    if (currency.includes('EUR')) return 'EUR'
+    // default
+    if(setDefault) return '₦';
+  }
+
   const currencyType = () => {
     const item = cart && cart[0];
-    switch (item) {
-      case item && item.price.includes('$'):
-        return 'USD';
-      case item && item.price.includes('£'):
-        return 'EUR';
-    
-      default:
-        return 'USD';
+    let { currency } = item;
+    currency = currency.trim()
+    if (currency) {
+      return fetchCurrency(getCurrencySymbol(currency))
+      .catch((error) => setErrorMessage(error.message || error))
     }
+    setErrorMessage('It seems curriency was not found')
   }
 
   const timoutLoading = () => {
@@ -81,7 +92,7 @@ export default function Cart({ navigation }) {
     const currency = currencyType();
     // set endpoint and your API key
     endpoint = 'convert';
-    access_key = '7c0ae94aed9444e5841d0f0f7ffe8c0e' || '7ca82bf4033bf45c7f9ad69028ad0afe';
+    access_key = 'pr_8c79ac77f0a04a1aa6a0aafee7e1d2f9';
 
     // define from currency, to currency, and amount
     from = currency || 'EUR';
@@ -90,7 +101,8 @@ export default function Cart({ navigation }) {
 
     await axios({
       method: 'GET',
-      url: `https://openexchangerates.org/api/latest.json?app_id=${access_key}&base=NGN`
+      url: `https://prepaid.currconv.com/api/v7/convert?q=${queryCurrenciesByNaira(from)}&compact=ultra&apiKey=${access_key}`
+      // url: `https://openexchangerates.org/api/latest.json?app_id=${access_key}&base=NGN`
       // url: 'http://data.fixer.io/api/latest?access_key=' + access_key + '&base=' + from,
       // url: `http://free.currencyconverterapi.com/api/v5/convert?q=${currency}_NGN&compact=y`
       // url: 'http://data.fixer.io/api/' + endpoint + '?access_key=' + access_key,

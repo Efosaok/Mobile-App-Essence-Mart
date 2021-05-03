@@ -1,14 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { Image } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Image, BackAndroid } from 'react-native';
 import AppLoading from 'expo-app-loading';
+import * as Analytics from 'expo-firebase-analytics';
+// import RNRestart from 'react-native-restart';
 import * as Font from 'expo-font';
 import { Asset } from 'expo-asset';
 import { Block, GalioProvider } from 'galio-framework';
 import { NavigationContainer } from '@react-navigation/native';
+// import * as SplashScreen from 'expo-splash-screen';
+import { setNativeExceptionHandler, setJSExceptionHandler } from "react-native-exception-handler";
 
 import Screens from './navigation/Screens';
 import { Images, articles, nowTheme } from './constants';
 import { useUserContext } from './context/UserContext';
+import { useToastContext } from './context/ToastContext';
 import firebase from './shared/firebase'
 
 // cache app images
@@ -40,12 +45,15 @@ function cacheImages(images) {
 }
 
 export default function AppComponent (props) {
+  const navigationRef = useRef();
+  const routeNameRef = useRef();
   const [state, setState] = useState({
     isLoadingComplete: false,
     fontLoaded: false
   });
 
   const { setUser } = useUserContext()
+  const { setToast } = useToastContext()
 
   const authStateChanged = (user) => {
     setUser({
@@ -57,7 +65,76 @@ export default function AppComponent (props) {
     })
   }
 
-  useEffect(() => {
+  const reporter = (error) => {
+    // Logic for reporting to devs
+    // Example : Log issues to github issues using github apis.
+    console.log(error); // sample
+  };
+
+  const errorHandler = (error, isFatal) => {
+    // This is your custom global error handler
+    // You do stuff like show an error dialog
+    // or hit google analytics to track crashes
+    // or hit a custom api to inform the dev team.
+    if (isFatal) {
+      reporter(error)
+      Alert.alert(
+        "Unexpected error occurred",
+        `
+          Error: ${isFatal ? "Fatal:" : ""} ${e.name} ${e.message}
+  
+          We have reported this to our team ! Please close the app and start again!
+          `,
+        [
+          {
+            text: "Close",
+            onPress: () => {
+              BackAndroid.exitApp();
+            },
+          },
+          // {
+          //   text: 'Restart',
+          //   onPress: () => {
+          //     RNRestart.Restart();
+          //   }
+          // }
+        ]
+      );
+    } else {
+      console.log(e); // So that we can see it in the ADB logs in case of Android if needed
+    }
+    console.log('error', error)
+  }
+
+  const allowInDevMode = true
+  setJSExceptionHandler(errorHandler, allowInDevMode);
+
+  const exceptionhandler = (exceptionString) => {
+    // your exception handler code here
+    console.log('exceptionString', exceptionString)
+  };
+
+  /* - forceAppQuit is an optional ANDROID specific parameter that defines
+  //    if the app should be force quit on error.  default value is true.
+  //    To see usecase check the common issues section.
+  */
+  const forceAppQuit = false;
+  /**
+    // - executeDefaultHandler is an optional boolean (both IOS, ANDROID)
+    //   It executes previous exception handlers if set by some other module.
+    //   It will come handy when you use any other crash analytics module along with this one
+    //   Default value is set to false. Set to true if you are using other analytics modules.
+   */
+  const executeDefaultHandler = true
+
+  // setNativeExceptionHandler(
+  //   exceptionhandler,
+  //   forceAppQuit,
+  //   executeDefaultHandler
+  // );
+
+  useEffect(async () => {
+    // await SplashScreen.preventAutoHideAsync();
     let subscribe = firebase.auth().onAuthStateChanged(authStateChanged)
     return subscribe
   }, [])
@@ -80,7 +157,10 @@ export default function AppComponent (props) {
 
   const _handleFinishLoading = () => {
     if (state.fontLoaded) {
-      setState({ isLoadingComplete: true });
+      setState({ isLoadingComplete: true })
+      //   , async () => {
+      //   await SplashScreen.hideAsync();
+      // });
     }
   };
 
@@ -94,9 +174,32 @@ export default function AppComponent (props) {
     );
   } else {
     return (
-      <NavigationContainer>
+      <NavigationContainer
+        ref={navigationRef}
+        onReady={() =>
+          (routeNameRef.current = navigationRef.current.getCurrentRoute().name)
+        }
+        onStateChange={async () => {
+          const previousRouteName = routeNameRef.current;
+          const currentRouteName = navigationRef.current.getCurrentRoute().name;
+
+          if (previousRouteName !== currentRouteName) {
+            // The line below uses the expo-firebase-analytics tracker
+            // https://docs.expo.io/versions/latest/sdk/firebase-analytics/
+            // Change this line to use another Mobile analytics SDK
+            setToast({ message: null});
+            // await Analytics().logScreenView({
+            //   screen_name: currentRouteName,
+            //   screen_class: currentRouteName
+            // });
+          }
+
+          // Save the current route name for later comparison
+          routeNameRef.current = currentRouteName;
+        }}
+      >
         <GalioProvider theme={nowTheme}>
-          <Block flex>
+          <Block style={{paddingTop: 10}} flex>
             <Screens />
           </Block>
         </GalioProvider>

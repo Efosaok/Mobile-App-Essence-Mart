@@ -1,5 +1,6 @@
 import React from "react";
-import { StyleSheet, Slider } from "react-native";
+import { StyleSheet } from "react-native";
+import Slider from "@react-native-community/slider";
 import PropTypes from "prop-types";
 import { Text, Block } from "galio-framework";
 
