@@ -4,9 +4,11 @@ import { Easing, Animated, Dimensions } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 // screens
 import Home from '../screens/Home';
 import Profile from '../screens/Profile';
+import EditProfile from '../screens/EditProfile';
 import Register from '../screens/Register';
 import Login from '../screens/Login';
 import Articles from '../screens/Articles';
@@ -116,9 +118,9 @@ function AccountStack(props) {
 
 function ProfileStack(props) {
   return (
-    <Stack.Navigator initialRouteName="Profile" mode="card" headerMode="screen">
+    <Stack.Navigator initialRouteName="ViewProfile" mode="card" headerMode="screen">
       <Stack.Screen
-        name="Profile"
+        name="ViewProfile"
         component={Profile}
         options={{
           header: ({ navigation, scene }) => (
@@ -126,6 +128,23 @@ function ProfileStack(props) {
               transparent
               white
               title="Profile"
+              navigation={navigation}
+              scene={scene}
+            />
+          ),
+          cardStyle: { backgroundColor: "#FFFFFF" },
+          headerTransparent: true
+        }}
+      />
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfile}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              transparent
+              white
+              title="Edit Profile"
               navigation={navigation}
               scene={scene}
             />
@@ -233,18 +252,23 @@ function StoreStack(props) {
 
 function AppStack(props) {
   const { isAuthenticated } = useUserContext();
+  const routeName = getFocusedRouteNameFromRoute(props.route) ?? 'Home';
 
   const renderAccount = () => {
-    if (isAuthenticated) {
-      return <Drawer.Screen name="Profile" component={ProfileStack} />
+    try {
+      if (isAuthenticated) {
+        return <Drawer.Screen name="Profile" component={ProfileStack} />
+      }
+      return <Drawer.Screen name="Account" component={AccountStack} />
+    } catch (error) {
+      console.log('AppStack - renderAccount', error)
     }
-    return <Drawer.Screen name="Account" component={AccountStack} />
   }
 
   return (
     <Drawer.Navigator
       style={{ flex: 1 }}
-      drawerContent={props => <CustomDrawerContent {...props} />}
+      drawerContent={props => <CustomDrawerContent routeName={routeName} {...props} />}
       drawerStyle={{
         backgroundColor: nowTheme.COLORS.PRIMARY,
         width: width * 0.8

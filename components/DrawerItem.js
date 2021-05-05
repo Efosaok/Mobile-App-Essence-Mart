@@ -194,24 +194,28 @@ const DrawerItem = (props) => {
   ];
 
   const logoutUser = () => {
-    if (title == 'LOGOUT') {
-      logoutSuccess()
-      .then(() => {
-        navigation.navigate('Onboarding')
-      })
-      .catch(function(error) {
-        console.log('There has been a problem with your fetch operation: ' + error.message);
-         // ADD THIS THROW error
-        // throw error;
-      });
-    } else if (title == 'Settings') {
-      navigation.navigate('Settings', { screen: 'Settings' })
-    } else if (title == "GETTING STARTED") {
-      Linking.openURL(
-        "https://demos.creative-tim.com/now-ui-pro-react-native/docs/"
-      ).catch(err => console.error("An error occurred", err))
-    } else if (to) {
-      navigation.navigate(to)
+    try {
+      if (title == 'LOGOUT') {
+        logoutSuccess()
+        .then(() => {
+          navigation.navigate('Onboarding')
+        })
+        .catch(function(error) {
+          console.log('There has been a problem with your fetch operation: ' + error.message);
+          // ADD THIS THROW error
+          // throw error;
+        });
+      } else if (title == 'Settings') {
+        navigation.navigate('Settings', { screen: 'Settings' })
+      } else if (title == "GETTING STARTED") {
+        Linking.openURL(
+          "https://demos.creative-tim.com/now-ui-pro-react-native/docs/"
+        ).catch(err => console.error("An error occurred", err))
+      } else if (to) {
+        navigation.navigate(to)
+      }
+    } catch (error) {
+      console.log('drawer', error)
     }
   }
 

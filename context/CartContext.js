@@ -16,15 +16,31 @@ const initialState = {
   cart: null,
   payment: null,
   store: null,
+  histories: null
 }
 
 function reducer (state, action) {
-  const { cart, index, data, store } = action
+  const { cart, index, data, store, histories } = action
   switch (action.type) {
     case 'INITIALIZE_CART_PAYMENT':
       return {
         ...state,
         payment: data
+      }
+
+    case 'UPDATE_CART_PAYMENT':
+      return {
+        ...state,
+        payment: {
+          ...state.payment,
+          ...data
+        }
+      }
+
+    case 'UPDATE_HISTORY':
+      return {
+        ...state,
+        histories: histories
       }
 
     case 'ADD_TO_CART':
@@ -85,9 +101,23 @@ const useCart = () => {
     })
   }
 
+  const setHistory = histories => {
+    dispatch({
+      type: 'UPDATE_HISTORY',
+      histories
+    })
+  }
+
   const initailizeCartPayment = ({ data }) => {
     dispatch({
       type: 'INITIALIZE_CART_PAYMENT',
+      data
+    })
+  }
+
+  const updateCartPayment = ({ data }) => {
+    dispatch({
+      type: 'UPDATE_CART_PAYMENT',
       data
     })
   }
@@ -120,7 +150,7 @@ const useCart = () => {
     })
   }
 
-  const { cart, payment, store } = state
+  const { cart, payment, store, histories } = state
 
   return {
     addToCart,
@@ -128,10 +158,13 @@ const useCart = () => {
     increaseItemQuantity,
     decreaseItemQuantity,
     initailizeCartPayment,
+    updateCartPayment,
     setCurrentStore,
+    setHistory,
     store,
     cart,
-    payment
+    payment,
+    histories
   }
 }
 

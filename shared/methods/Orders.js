@@ -4,7 +4,7 @@ import firebase from "../firebase";
 export const createOrder = (cart, user) => { 
   return firebase
   .firestore()
-  .collection('Orders')
+  .collection('orders')
   .add({
     cart,
     status: 'ACTIVE',
@@ -17,22 +17,16 @@ export const createOrder = (cart, user) => {
 export const getOrders = (userId) => { 
   return firebase
   .firestore()
-  .collection("Orders")
+  .collection("orders")
   .where("userId", "==", userId)
   .orderBy('status', 'asc')
+  .get()
   // .orderBy("email", "asc")
 }
 
 export const getOrder = (orderId) => { 
   return firebase
   .firestore()
-  .collection(`Orders/${orderId}`)
-  // .orderBy("email", "asc")
-}
-
-export const getOrder = (orderId) => { 
-  return firebase
-  .firestore()
-  .collection(`Orders/${orderId}`)
+  .collection(`orders/${orderId}`)
   // .orderBy("email", "asc")
 }

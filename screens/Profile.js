@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Dimensions, ScrollView, Image, ImageBackground, Platform, Alert } from 'react-native';
 import { Block, Text, theme, Button as GaButton } from 'galio-framework';
 
@@ -7,34 +7,56 @@ import { Images, nowTheme } from '../constants';
 import { HeaderHeight } from '../constants/utils';
 import { useUserContext } from '../context/UserContext';
 import firebase from 'firebase';
+import { getOrders } from '../shared/methods/Orders';
+import { useCartContext } from '../context/CartContext';
 
 const { width, height } = Dimensions.get('screen');
 
 const thumbMeasure = (width - 48 - 32) / 3;
 
-const Profile = () => {
-  const { user } = useUserContext();
+const Profile = ({ navigation }) => {
+  const { user, setUser } = useUserContext();
+  const { setHistory, histories } = useCartContext()
+
+  useEffect(() => {
+    try {
+      getOrders(user.uid)
+      .then((orders) => {
+        const docs = orders.docs;
+        const data = []
+        docs.forEach((doc) => data.push(doc.data()))
+        setHistory(data)
+      })
+      .catch((err) => console.log('err', err))
+    } catch (error) {
+      console.log('error -- useEffect', error)
+    }
+  }, [])
 
   const sendEmailVerification = () => {
-    const currentUser = firebase.auth().currentUser
-    currentUser.sendEmailVerification()
-    .then(function() {
-      Alert.alert(null, 'Verification email sent.', [
-        { text: "OK", onPress: () => console.log("OK Pressed") }
-      ])
-      const timeout = setTimeout(() => {
-        currentUser.reload()
-        clearTimeout(timeout)
-        console.log('timeout -- timeout')
-      }, 1000);
-      // Verification email sent.
-    })
-    .catch(function(error) {
-      // Error occurred. Inspect error.code.
-      Alert.alert(null, error.message || error, [
-        { text: "OK", onPress: () => console.log("OK Pressed") }
-      ])
-    });
+    try {
+      const currentUser = firebase.auth().currentUser
+      currentUser.sendEmailVerification()
+      .then(function() {
+        Alert.alert(null, 'Verification email sent.', [
+          { text: "OK", onPress: () => console.log("OK Pressed") }
+        ])
+        const timeout = setTimeout(async() => {
+          await currentUser.reload();
+          setUser(firebase.auth().currentUser.toJSON());
+          clearTimeout(timeout)
+        }, 30000);
+        // Verification email sent.
+      })
+      .catch(function(error) {
+        // Error occurred. Inspect error.code.
+        Alert.alert(null, error.message || error, [
+          { text: "OK", onPress: () => console.log("OK Pressed") }
+        ])
+      });
+    } catch (error) {
+      console.log('Profile - sendEmailVerification error', error)
+    }
   }
 
   const getVerificationUI = () => {
@@ -68,7 +90,7 @@ const Profile = () => {
           <Block flex style={styles.profileCard}>
             <Block style={{ position: 'absolute', width: width, zIndex: 5, paddingHorizontal: 20 }}>
               <Block middle style={{ top: height * 0.15 }}>
-                <Image source={Images.ProfilePicture} style={styles.avatar} />
+                <Image source={user.photoURL ? { uri: user.photoURL } : Images.ProfilePicture} style={styles.avatar} />
               </Block>
               <Block style={{ top: height * 0.2 }}>
                 <Block middle >
@@ -108,7 +130,7 @@ const Profile = () => {
                         color="white"
                         style={{ marginBottom: 4, fontFamily: 'montserrat-bold' }}
                       >
-                        2
+                        --
                       </Text>
                       <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="white">
                         Delivered
@@ -121,7 +143,7 @@ const Profile = () => {
                         size={18}
                         style={{ marginBottom: 4, fontFamily: 'montserrat-bold' }}
                       >
-                        3
+                        --
                       </Text>
                       <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="white">
                         In Progress
@@ -134,7 +156,7 @@ const Profile = () => {
                         size={18}
                         style={{ marginBottom: 4, fontFamily: 'montserrat-bold' }}
                       >
-                        4
+                        --
                       </Text>
                       <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="white">
                         Arrived
@@ -153,7 +175,12 @@ const Profile = () => {
               row
               style={{ position: 'absolute', width: width, top: height * 0.6 - 26, zIndex: 99 }}
             >
-              <Button style={{ width: 114, height: 44, marginHorizontal: 5, elevation: 0 }} textStyle={{ fontSize: 16 }} round>
+              <Button
+                onPress={() => navigation.navigate('Profile', { screen: 'EditProfile' })}
+                style={{ width: 114, height: 44, marginHorizontal: 5, elevation: 0 }}
+                textStyle={{ fontSize: 16 }}
+                round
+              >
                 Edit
               </Button>
               {getVerificationUI()}
@@ -169,28 +196,39 @@ const Profile = () => {
           <Block flex style={{ marginTop: 20 }}>
             <Block row style={{ paddingVertical: 14, paddingHorizontal: 15 }} space="between">
               <Text bold size={16} color="#2c2c2c" style={{ marginTop: 3 }}>
-                History
-                  </Text>
-              <Button
+                Other Information
+              </Text>
+              {/* <Button
                 small
                 color="transparent"
                 textStyle={{ color: nowTheme.COLORS.PRIMARY, fontSize: 14 }}
               >
                 View all
-                  </Button>
+                  </Button> */}
             </Block>
 
 
             <Block style={{ paddingBottom: -HeaderHeight * 2, paddingHorizontal: 15}}>
               <Block row space="between" style={{ flexWrap: 'wrap' }}>
-                {Images.Viewed.map((img, imgIndex) => (
+                {/* {Images.Viewed.map((img, imgIndex) => (
                   <Image
                     source={img}
                     key={`viewed-${img}`}
                     resizeMode="cover"
                     style={styles.thumb}
                   />
-                ))}
+                ))} */}
+                {/* {console.log('histories -- histories', histories)} */}
+                {/* {histories && histories.length && histories.map((carts, imgIndex) => (
+                  carts && carts[0] && carts[0] && carts[0].cart && carts[0].cart.map(eachCart => (
+                    <Image
+                      source={eachCart.imageUrl ? { uri: eachCart.imageUrl } : Images.Viewed[0]}
+                      key={`viewed-${eachCart.imageUrl}`}
+                      resizeMode="cover"
+                      style={styles.thumb}
+                    />
+                  ))
+                ))} */}
               </Block>
             </Block>
           </Block>

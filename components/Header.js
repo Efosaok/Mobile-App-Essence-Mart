@@ -7,6 +7,10 @@ import Icon from './Icon';
 import Input from './Input';
 import Tabs from './Tabs';
 import nowTheme from '../constants/Theme';
+import firebase from '../shared/firebase'
+import { updateUser } from '../shared/methods/Users';
+import { useProfileContext } from '../context/ProfileContext';
+import { useUserContext } from '../context/UserContext';
 
 const { height, width } = Dimensions.get('window');
 const iPhoneX = () =>
@@ -27,13 +31,13 @@ const BellButton = ({ isWhite, style, navigation }) => (
   </TouchableOpacity>
 );
 
-const BasketButton = ({ isWhite, style, navigation }) => (
+const BasketButton = ({ isWhite, style, navigation, name, size, onPress }) => (
   <TouchableOpacity style={[styles.button, style]} onPress={() => {}}>
     <Icon
       family="NowExtra"
-      size={16}
-      name="basket2x"
-      onPress={() => navigation.navigate('Shopping', { screen: 'Cart' })}
+      size={size || 16}
+      name={name || "basket2x"}
+      onPress={() => onPress ? onPress() : navigation.navigate('Shopping', { screen: 'Cart' })}
       color={nowTheme.COLORS[isWhite ? 'WHITE' : 'ICON']}
     />
   </TouchableOpacity>
@@ -42,6 +46,8 @@ const BasketButton = ({ isWhite, style, navigation }) => (
 
 
 const Header = (props) => {
+  const { profile, setProfileError, setProfileLoading, setLoadingMessage } = useProfileContext();
+  const { user, updateUser: updateUserState } = useUserContext();
   const handleLeftPress = () => {
     const { back, navigation } = props;
     return back ? navigation.goBack() : navigation.openDrawer();
@@ -65,8 +71,8 @@ const Header = (props) => {
         ];
       case 'Deals':
         return [
-          <BellButton key="chat-categories" navigation={navigation} />,
-          <BasketButton key="basket-categories" navigation={navigation} />
+          <BellButton key="chat-deals" navigation={navigation} />,
+          <BasketButton key="basket-deals" navigation={navigation} />
         ];
       case 'Stores':
         return [
@@ -75,14 +81,67 @@ const Header = (props) => {
         ];
       case 'Category':
         return [
-          <BellButton key="chat-deals" navigation={navigation} isWhite={white} />,
-          <BasketButton key="basket-deals" navigation={navigation} isWhite={white} />
+          <BellButton key="chat-category" navigation={navigation} isWhite={white} />,
+          <BasketButton key="basket-category" navigation={navigation} isWhite={white} />
         ];
       case 'Profile':
         return [
           <BellButton key="chat-profile" navigation={navigation} isWhite={white} />,
           <BasketButton key="basket-deals" navigation={navigation} isWhite={white} />
         ];
+      case 'Edit Profile': {
+        const updateProfile = () => {
+          try {
+            const { photoURL, displayName, phoneNumber } = profile
+            if(profile.displayName === '') {
+              setProfileError('Enter details to login!')
+            } else {
+              setProfileLoading(true)
+              setLoadingMessage('Updating profile')
+              firebase
+              .auth()
+              .currentUser
+              .updateProfile({ photoURL, displayName, phoneNumber })
+              .then((res) => {
+                setLoadingMessage('Updating profile..')
+                updateUser(profile, user)
+                .then((res) => {
+                  updateUserState({ photoURL, displayName, phoneNumber })
+                  navigation.navigate('Profile', { screen: 'ViewProfile' })
+                  setProfileError('')
+                  setLoadingMessage('')
+                  setProfileLoading(false)
+                })
+                .catch((err) => {
+                  console.log('updateUser - error', err)
+                  setLoadingMessage('')
+                  setProfileError(error.message || error)
+                  setProfileLoading(false)
+                })
+              })
+              .catch(error => {
+                console.log('error', error)
+                setProfileError(error.message || error)
+                setProfileLoading(false)
+              })
+            }
+          } catch (error) {
+            setProfileError(error.message || error)
+          }
+        }
+
+        return [
+          // <BellButton key="chat-profile" navigation={navigation} isWhite={white} />,
+          <BasketButton
+            onPress={updateProfile}
+            key="basket-deals"
+            size={30}
+            name="check-22x"
+            navigation={navigation}
+            isWhite={white}
+          />
+        ];
+      }
       case 'Account':
         return [
           <BellButton key="chat-profile" navigation={navigation} />,
@@ -107,6 +166,32 @@ const Header = (props) => {
         break;
     }
   };
+
+
+  const renderLeft = () => {
+    const { white, title, navigation } = props;
+
+    if (title === 'Edit Profile') {
+      return (
+        <Icon
+          name="simple-remove2x"
+          family="NowExtra"
+          size={30}
+          onPress={() => navigation.navigate('Profile', { screen: 'ViewProfile' })}
+          color={iconColor || (white ? nowTheme.COLORS.WHITE : nowTheme.COLORS.ICON)}
+        />
+      );
+    }
+
+    return (
+      <Icon
+        name={back ? 'minimal-left2x' : 'align-left-22x'}
+        family="NowExtra"
+        size={16}
+        onPress={handleLeftPress}
+        color={iconColor || (white ? nowTheme.COLORS.WHITE : nowTheme.COLORS.ICON)}
+      />)
+  }
   const renderSearch = () => {
     const { navigation } = props;
     return (
@@ -225,7 +310,6 @@ const Header = (props) => {
 
   function trunc(text) {
     const size = Math.floor(width / 16) + 4
-    console.log('size', size, width)
     return text.length > size ? `${text.substr(0, size)}...` : text;
   }
   
@@ -241,15 +325,7 @@ const Header = (props) => {
         transparent={transparent}
         right={renderRight()}
         rightStyle={{ alignItems: 'center' }}
-        left={
-          <Icon
-            name={back ? 'minimal-left2x' : 'align-left-22x'}
-            family="NowExtra"
-            size={16}
-            onPress={handleLeftPress}
-            color={iconColor || (white ? nowTheme.COLORS.WHITE : nowTheme.COLORS.ICON)}
-          />
-        }
+        left={renderLeft()}
         leftStyle={{ paddingVertical: 12, flex: 0.2 }}
         titleStyle={[
           styles.title,

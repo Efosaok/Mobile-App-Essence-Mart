@@ -9,6 +9,11 @@ import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './context/ToastContext';
 // import { ErrorHandler } from "./components/ErrorHandler";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { ProfileProvider } from './context/ProfileContext';
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
 
 export default function App () {
   return (
@@ -19,7 +24,9 @@ export default function App () {
             <CartProvider>
               <LocationProvider>
                 <ErrorBoundary>
-                  <AppComponent />
+                  <ProfileProvider>
+                    <AppComponent />
+                  </ProfileProvider>
                 </ErrorBoundary>
               </LocationProvider>
             </CartProvider>

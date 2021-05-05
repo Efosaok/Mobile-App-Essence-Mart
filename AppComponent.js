@@ -5,7 +5,7 @@ import * as Analytics from 'expo-firebase-analytics';
 // import RNRestart from 'react-native-restart';
 import * as Font from 'expo-font';
 import { Asset } from 'expo-asset';
-import { Block, GalioProvider } from 'galio-framework';
+import { Block, GalioProvider, Toast } from 'galio-framework';
 import { NavigationContainer } from '@react-navigation/native';
 // import * as SplashScreen from 'expo-splash-screen';
 import { setNativeExceptionHandler, setJSExceptionHandler } from "react-native-exception-handler";
@@ -15,6 +15,7 @@ import { Images, articles, nowTheme } from './constants';
 import { useUserContext } from './context/UserContext';
 import { useToastContext } from './context/ToastContext';
 import firebase from './shared/firebase'
+import { getUser } from './shared/methods/Users';
 
 // cache app images
 const assetImages = [
@@ -53,16 +54,43 @@ export default function AppComponent (props) {
   });
 
   const { setUser } = useUserContext()
-  const { setToast } = useToastContext()
+  const { setToast, toast } = useToastContext()
+
+  const cacheProfileImage = async (url) => {
+    assetImages.push(url)
+    return await Image.prefetch(url)
+  }
 
   const authStateChanged = (user) => {
-    setUser({
-      ...user.providerData[0],
-      emailVerified: user.emailVerified,
-      refreshToken: user.refreshToken,
-      token: user.accessToken,
-      uid: user.uid
-    })
+    try {
+      if (user && user.providerData) {
+        getUser(user.uid)
+        .then((userData) => {
+          const data = userData.data()
+          setUser({
+            ...data,
+            ...user.providerData[0],
+            emailVerified: user.emailVerified,
+            refreshToken: user.refreshToken,
+            token: user.accessToken,
+            uid: user.uid
+          })
+        })
+        .catch((error) => {
+          console.log('getUser error', error)
+          setUser({
+            ...user.providerData[0],
+            emailVerified: user.emailVerified,
+            refreshToken: user.refreshToken,
+            token: user.accessToken,
+            uid: user.uid
+          })
+        })
+        if (user.providerData[0].photoURL) cacheProfileImage(user.providerData[0].photoURL)
+      }
+    } catch (error) {
+      console.log('error', error)
+    }
   }
 
   const reporter = (error) => {
@@ -85,23 +113,10 @@ export default function AppComponent (props) {
   
           We have reported this to our team ! Please close the app and start again!
           `,
-        [
-          {
-            text: "Close",
-            onPress: () => {
-              BackAndroid.exitApp();
-            },
-          },
-          // {
-          //   text: 'Restart',
-          //   onPress: () => {
-          //     RNRestart.Restart();
-          //   }
-          // }
-        ]
+        [{ text: "Close", onPress: () => BackAndroid.exitApp() }]
       );
     } else {
-      console.log(e); // So that we can see it in the ADB logs in case of Android if needed
+      console.log(error); // So that we can see it in the ADB logs in case of Android if needed
     }
     console.log('error', error)
   }
@@ -199,7 +214,9 @@ export default function AppComponent (props) {
         }}
       >
         <GalioProvider theme={nowTheme}>
-          <Block style={{paddingTop: 10}} flex>
+          <Block flex>
+            {/* TODO: Remove and integrate Alert for successful Checkout -- tobe done on Checkout */}
+            <Toast textStyle={{textAlign: 'center'}} color="success" isShow={!!toast.message} positionIndicator="top">{toast.message}</Toast>
             <Screens />
           </Block>
         </GalioProvider>

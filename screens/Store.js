@@ -89,7 +89,7 @@ export default function DetailsScreen({ navigation }) {
       console.log('buttonProps.cancelled', buttonProps.cancelled)
       console.log('isCheckout', isCheckout)
       setIsLoading(false)
-      if (data.carts && data.carts.length) {
+      if (isCheckout && data.carts && data.carts.length) {
         addToCart(data.carts)
         setMessage('')
         updateBooleanProps(false, false, false);

@@ -8,6 +8,7 @@ import {
   Linking
 } from "react-native";
 import { Block, Text, theme } from "galio-framework";
+
 // import { useSafeArea } from "react-native-safe-area-context";
 import Images from "../constants/Images";
 import { DrawerItem as DrawerCustomItem, Icon } from "../components";
@@ -23,6 +24,7 @@ function CustomDrawerContent({
   profile,
   focused,
   state,
+  routeName,
   ...rest
 }) {
   const { user, isAuthenticated } = useUserContext()
@@ -39,15 +41,19 @@ function CustomDrawerContent({
   ])
 
   useEffect(() => {
-    let items = JSON.parse(JSON.stringify(screens))
-    if (isAuthenticated) {
-      items = items.map((item) => {
-        if (item.to === "Account") {
-          return { title: "Profile", to: "Profile" }
-        }
-        return item
-      })
-      setScreens(items)
+    try {
+      let items = JSON.parse(JSON.stringify(screens))
+      if (isAuthenticated) {
+        items = items.map((item) => {
+          if (item.to === "Account") {
+            return { title: "Profile", to: "Profile" }
+          }
+          return item
+        })
+        setScreens(items)
+      }
+    } catch (error) {
+      console.log('useEffect Menu component - error', error)
     }
   }, [isAuthenticated])
 
@@ -76,7 +82,7 @@ function CustomDrawerContent({
                 to={item.to}
                 key={index}
                 navigation={navigation}
-                focused={state.index === index ? true : false}
+                focused={(routeName === item.to || routeName === item.title) ? true : false}
               />
             );
           })}
@@ -116,7 +122,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     height: 40,
-    width: 37
+    width: 45// 37
   }
 });
 

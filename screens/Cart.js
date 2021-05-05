@@ -1,31 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, Dimensions, ActivityIndicator, Alert } from 'react-native';
-import { Block, theme, Text, Button } from "galio-framework";
+import React, { useState } from 'react';
+import { SafeAreaView, StyleSheet, Dimensions, Alert } from 'react-native';
+import { Block, theme } from "galio-framework";
 import CartComponent from "../components/cart";
 import Loader from '../components/Loader';
 import axios from "axios";
 import { useCartContext } from '../context/CartContext';
-import { getCurrency as fetchCurrency } from '../shared/methods/Currencies';
+// import { getCurrency as fetchCurrency } from '../shared/methods/Currencies';
+import { currencies } from '../constants/currencies';
+import { useUserContext } from '../context/UserContext';
 
 const { width } = Dimensions.get('screen');
 
-let keepCount = 100;
-
 export default function Cart({ navigation }) {
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [loop, setLoop] = useState();
   const { cart, initailizeCartPayment } = useCartContext()
+  const { user } = useUserContext()
 
   const Quantity = (item) => Number(item.quantity || 1)
-
-  const getCurrency = (price, currency, num) => price.includes(currency) ? price.split(currency)[1] : (num || 0)
-  const getPrice = (price) => getCurrency(price, '$', getCurrency(price, '£'))
-  const IndexedPrice = (item) => Number((item.price && getPrice(item.price)) || 0);
+  const IndexedPrice = (item) => Number(item.price || 0);
 
   const items = cart && cart.map((item) => Quantity(item) * IndexedPrice(item));
   const total = items && items.reduce((prev, amt) => Number(amt) + prev, 0);
+  // TODO: total amount in nigeria currency
+  // TODO: Exchange Rate
 
+  const quantites = items && items.reduce((prev, item) => Quantity(item) + prev, 0);
   const showScreen = () => {
     errorMessage && Alert.alert(null, errorMessage, [
       { text: "OK", onPress: () => setErrorMessage("") }
@@ -49,32 +49,11 @@ export default function Cart({ navigation }) {
     let { currency } = item;
     currency = currency.trim()
     if (currency) {
-      return fetchCurrency(getCurrencySymbol(currency))
-      .catch((error) => setErrorMessage(error.message || error))
+      return getCurrencySymbol(currency)
     }
     setErrorMessage('It seems curriency was not found')
+    throw new Error('It seems curriency was not found')
   }
-
-  const timoutLoading = () => {
-    keepCount += 100
-    setLoop(setInterval(() => {
-      keepCount += 100
-      if (cart.length || keepCount === 60000) {
-        setIsLoading(false)
-        clearInterval(loop)
-        keepCount = 100
-      }
-    }, 100));
-  }
-
-  useEffect(() => {
-    timoutLoading();
-    return function cleanup() {
-      console.log("cleaning up");
-      clearInterval(loop);
-      keepCount = 100
-    };
-  }, [cart])
 
   /**
    * Generate Paystack checkout transaction key
@@ -82,60 +61,48 @@ export default function Cart({ navigation }) {
    * @returns {void}
    */
   const generateCartKey = async (cb) => {
-    setIsLoading(true)
-    const params = {
-      email: "customer@email.com",
-      // TODO: integrate exchange rate
-      amount: parseInt(total).toFixed(2),
-    }
+    try {
+      setIsLoading(true)
+      const from = currencyType() || 'EUR';
+      const amountInNaira = currencies[from] * total;
+      const FloatTotal = parseFloat(amountInNaira).toFixed(2)
+      const AmountInKobo = parseInt(String(FloatTotal).split('.').join(''))
 
-    const currency = currencyType();
-    // set endpoint and your API key
-    endpoint = 'convert';
-    access_key = 'pr_8c79ac77f0a04a1aa6a0aafee7e1d2f9';
-
-    // define from currency, to currency, and amount
-    from = currency || 'EUR';
-    to = 'NGN';
-    amount = '10';
-
-    await axios({
-      method: 'GET',
-      url: `https://prepaid.currconv.com/api/v7/convert?q=${queryCurrenciesByNaira(from)}&compact=ultra&apiKey=${access_key}`
-      // url: `https://openexchangerates.org/api/latest.json?app_id=${access_key}&base=NGN`
-      // url: 'http://data.fixer.io/api/latest?access_key=' + access_key + '&base=' + from,
-      // url: `http://free.currencyconverterapi.com/api/v5/convert?q=${currency}_NGN&compact=y`
-      // url: 'http://data.fixer.io/api/' + endpoint + '?access_key=' + access_key,
-      // url: `https://free.currconv.com/api/v7/convert?q=${currency}_NGN&compact=ultra&apiKey=8597a1ba8ef08e4cad70`
-      // url: 'http://data.fixer.io/api/' + endpoint + '?access_key=' + access_key +'&from=' + from + '&to=' + to + '&amount=' + amount,
-    })
-    .then((res) => {
-      console.log('res', res)
-    })
-    .catch((err) => console.log('err', JSON.stringify(err, undefined, 3)))
-
-    const options = {
-      url: 'https://api.paystack.co/transaction/initialize',
-      method: 'POST',
-      data: params,
-      headers: {
-        Authorization: 'Bearer sk_test_596f74c8f5735986902eb2e4260eff33b2304649',
-        'Content-Type': 'application/json'
+      const testEmail = "customer@email.com"
+      const params = {
+        email: user.email || testEmail,
+        amount: AmountInKobo,
+        currency: 'NGN'
       }
-    }
 
-    return await axios(options)
-    .then((res) => {
-      console.log('res.data -res.data', res.data)
-      initailizeCartPayment(res.data)
+      console.log('params', params)
+
+      const options = {
+        url: 'https://api.paystack.co/transaction/initialize',
+        method: 'POST',
+        data: params,
+        headers: {
+          Authorization: 'Bearer sk_test_596f74c8f5735986902eb2e4260eff33b2304649',
+          'Content-Type': 'application/json'
+        }
+      }
+
+      return await axios(options)
+      .then((res) => {
+        console.log('res.data -res.data', res.data)
+        initailizeCartPayment(res.data)
+        setIsLoading(false)
+        if (cb) return cb()
+      })
+      .catch((error) => {
+        console.log('error', JSON.stringify(error))
+        setErrorMessage(error.message || error)
+        setIsLoading(false)
+      })
+    } catch (error) {
+      console.log('error', error)
       setIsLoading(false)
-      if (cb) return cb()
-    })
-    .catch((error) => {
-      console.log('error', JSON.stringify(error))
-      setErrorMessage(error.message || error)
-      setIsLoading(false)
-    })
+    }
   }
 
   return (

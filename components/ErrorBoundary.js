@@ -23,6 +23,7 @@ export class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch (error, errorInfo) {
+    console.log('error, errorInfo', error, errorInfo)
     // deal with errorInfo if needed
     Sentry.captureException(error);
   }
