@@ -12,10 +12,6 @@ const { height, width } = Dimensions.get('window');
 const iPhoneX = () =>
   Platform.OS === 'ios' && (height === 812 || width === 812 || height === 896 || width === 896 || height === 926);
 
-console.log('iPhoneX()', iPhoneX())
-console.log('Platform.OS', Platform.OS)
-console.log('height', height)
-console.log('width', width)
 const BellButton = ({ isWhite, style, navigation }) => (
   <TouchableOpacity
     style={[styles.button, style]}
@@ -37,6 +33,7 @@ const BasketButton = ({ isWhite, style, navigation }) => (
       family="NowExtra"
       size={16}
       name="basket2x"
+      onPress={() => navigation.navigate('Shopping', { screen: 'Cart' })}
       color={nowTheme.COLORS[isWhite ? 'WHITE' : 'ICON']}
     />
   </TouchableOpacity>
@@ -44,13 +41,13 @@ const BasketButton = ({ isWhite, style, navigation }) => (
 
 
 
-class Header extends React.Component {
-  handleLeftPress = () => {
-    const { back, navigation } = this.props;
+const Header = (props) => {
+  const handleLeftPress = () => {
+    const { back, navigation } = props;
     return back ? navigation.goBack() : navigation.openDrawer();
   };
-  renderRight = () => {
-    const { white, title, navigation } = this.props;
+  const renderRight = () => {
+    const { white, title, navigation } = props;
     
 
     if (title === 'Title') {
@@ -71,7 +68,7 @@ class Header extends React.Component {
           <BellButton key="chat-categories" navigation={navigation} />,
           <BasketButton key="basket-categories" navigation={navigation} />
         ];
-      case 'Categories':
+      case 'Stores':
         return [
           <BellButton key="chat-categories" navigation={navigation} isWhite={white} />,
           <BasketButton key="basket-categories" navigation={navigation} isWhite={white} />
@@ -110,8 +107,8 @@ class Header extends React.Component {
         break;
     }
   };
-  renderSearch = () => {
-    const { navigation } = this.props;
+  const renderSearch = () => {
+    const { navigation } = props;
     return (
       <Input
         right
@@ -126,7 +123,7 @@ class Header extends React.Component {
       />
     );
   };
-  renderContext = () => {
+  const renderContext = () => {
     return (
       <Block row style={styles.options}>
         <Text
@@ -138,8 +135,8 @@ class Header extends React.Component {
       </Block>
     )
   }
-  renderOptions = () => {
-    const { navigation, optionLeft, optionRight } = this.props;
+  const renderOptions = () => {
+    const { navigation, optionLeft, optionRight } = props;
 
     return (
       <Block row style={styles.options}>
@@ -179,8 +176,8 @@ class Header extends React.Component {
     );
   };
 
-  renderTabs = () => {
-    const { tabs, tabIndex, navigation } = this.props;
+  const renderTabs = () => {
+    const { tabs, tabIndex, navigation } = props;
     const defaultTab = tabs && tabs[0] && tabs[0].id;
 
     if (!tabs) return null;
@@ -193,70 +190,76 @@ class Header extends React.Component {
       />
     );
   };
-  renderHeader = () => {
-    const { search, options, tabs, context } = this.props;
+  const renderHeader = () => {
+    const { search, options, tabs, context } = props;
     if (search || tabs || options) {
       return (
         <Block center>
-          {search ? this.renderSearch() : null}
-          {options ? this.renderOptions() : null}
-          {tabs ? this.renderTabs() : null}
-          {context ? this.renderContext() : null}
+          {search ? renderSearch() : null}
+          {options ? renderOptions() : null}
+          {tabs ? renderTabs() : null}
+          {context ? renderContext() : null}
         </Block>
       );
     }
   };
-  render() {
-    const {
-      back,
-      title,
-      white,
-      transparent,
-      bgColor,
-      iconColor,
-      titleColor,
-      navigation,
-      ...props
-    } = this.props;
 
-    const noShadow = ['Search', 'Categories', 'Deals', 'Pro', 'Profile'].includes(title);
-    const headerStyles = [
-      !noShadow ? styles.shadow : null,
-      transparent ? { backgroundColor: 'rgba(0,0,0,0)' } : null
-    ];
+  const {
+    back,
+    title,
+    white,
+    transparent,
+    bgColor,
+    iconColor,
+    titleColor,
+    navigation,
+    ...rest
+  } = props;
 
-    const navbarStyles = [styles.navbar, bgColor && { backgroundColor: bgColor }];
+  const noShadow = ['Search', 'Categories', 'Deals', 'Pro', 'Profile'].includes(title);
+  const headerStyles = [
+    !noShadow ? styles.shadow : null,
+    transparent ? { backgroundColor: 'rgba(0,0,0,0)' } : null
+  ];
 
-    return (
-      <Block style={headerStyles}>
-        <NavBar
-          back={false}
-          title={title}
-          style={navbarStyles}
-          transparent={transparent}
-          right={this.renderRight()}
-          rightStyle={{ alignItems: 'center' }}
-          left={
-            <Icon
-              name={back ? 'minimal-left2x' : 'align-left-22x'}
-              family="NowExtra"
-              size={16}
-              onPress={this.handleLeftPress}
-              color={iconColor || (white ? nowTheme.COLORS.WHITE : nowTheme.COLORS.ICON)}
-            />
-          }
-          leftStyle={{ paddingVertical: 12, flex: 0.2 }}
-          titleStyle={[
-            styles.title,
-            { color: nowTheme.COLORS[white ? 'WHITE' : 'HEADER'] },
-            titleColor && { color: titleColor }
-          ]}
-          {...props}
-        />
-        {this.renderHeader()}
-      </Block>
-    );
+  function trunc(text) {
+    const size = Math.floor(width / 16) + 4
+    console.log('size', size, width)
+    return text.length > size ? `${text.substr(0, size)}...` : text;
   }
+  
+  const navbarStyles = [styles.navbar, bgColor && { backgroundColor: bgColor }];
+
+  return (
+    <Block style={headerStyles}>
+      <NavBar
+        back={false}
+        title={trunc(title)}
+        numberOfLines={1}
+        style={navbarStyles}
+        transparent={transparent}
+        right={renderRight()}
+        rightStyle={{ alignItems: 'center' }}
+        left={
+          <Icon
+            name={back ? 'minimal-left2x' : 'align-left-22x'}
+            family="NowExtra"
+            size={16}
+            onPress={handleLeftPress}
+            color={iconColor || (white ? nowTheme.COLORS.WHITE : nowTheme.COLORS.ICON)}
+          />
+        }
+        leftStyle={{ paddingVertical: 12, flex: 0.2 }}
+        titleStyle={[
+          styles.title,
+          { color: nowTheme.COLORS[white ? 'WHITE' : 'HEADER'] },
+          titleColor && { color: titleColor }
+        ]}
+        {...rest}
+      />
+      {renderHeader()}
+    </Block>
+  );
 }
 
 const styles = StyleSheet.create({

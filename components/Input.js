@@ -9,7 +9,7 @@ import { nowTheme } from "../constants";
 
 class ArInput extends React.Component {
   render() {
-    const { shadowless, success, error, primary } = this.props;
+    const { shadowless, success, error, primary, hasIcon } = this.props;
 
     const inputStyles = [
       styles.input,
@@ -27,12 +27,12 @@ class ArInput extends React.Component {
         style={inputStyles}
         color={nowTheme.COLORS.HEADER}
         iconContent={
-          <Icon
+          hasIcon ? <Icon
             size={14}
             color={nowTheme.COLORS.ICON}
             name="link"
             family="AntDesign"
-          />
+          /> : null
         }
         {...this.props}
       />

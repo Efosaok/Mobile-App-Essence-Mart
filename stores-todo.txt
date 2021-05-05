@@ -1,0 +1,6 @@
+TODO:
+DOLCE AND GABANNA as different url
+    cartLink => https://www.dolcegabbana.com/on/demandware.store/Sites-dolcegabbana-Site/en/Cart-Show
+    newCartLink => https://us.dolcegabbana.com/on/demandware.store/Sites-dolcegabbana_us-Site/en/Cart-Show
+    Description: 
+      Write Function / script that makes the checkout url dynamic
