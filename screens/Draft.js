@@ -1,22 +1,17 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { useEffect, useState, Fragment } from 'react';
 import {
   ScrollView,
   StyleSheet,
   Dimensions,
-  TouchableOpacity,
-  Image,
-  Animated,
-  ImageBackground
 } from 'react-native';
 
-import Articles from '../screens/Articles';
 // Galio components
-import { Block, Text, theme } from 'galio-framework';
+import { Block, Text } from 'galio-framework';
 import moment from 'moment';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 // Now UI themed components
-import { articles, nowTheme } from '../constants';
+import { nowTheme } from '../constants';
 
 import { Card } from '../components';
 import { useCartContext } from '../context/CartContext';
@@ -28,30 +23,34 @@ const { width } = Dimensions.get('screen');
 
 const thumbMeasure = (width - (width / 5));
 
-const History = (props) => {
+const DRAFT = (props) => {
   const { user } = useUserContext();
-  const { setHistory, histories } = useCartContext()
+  const { setHistory, draft, setOrder } = useCartContext()
   const [isLoading, setLoading] = useState(false)
+  const { navigation } = props;
 
   useEffect(() => {
+    // let unsubscribe;
+    const status = 'DRAFT';
     try {
       setLoading(true)
-      getOrders(user.uid)
+      getOrders(user.uid, status)
       .then((orders) => {
         const docs = orders.docs;
         const data = []
         docs.forEach((doc) => data.push(doc.data()))
-        setHistory(JSON.parse(JSON.stringify(data)))
+        setHistory(JSON.parse(JSON.stringify(data)), status)
         setLoading(false)
       })
       .catch((err) => {
+        console.log(err, '????????????>>>>>>>>>>')
         setLoading(false)
-        console.log('err', err)
       })
     } catch (error) {
+      console.log(error, '????????????>>>>>>>>>>')
       setLoading(false)
-      console.log('error -- useEffect', error)
     }
+    // return () => unsubscribe()
   }, [])
 
   const resolveNaming = (item) => (item && item.cart) || (item && item.carts)
@@ -63,7 +62,7 @@ const History = (props) => {
 
   // TODO: Delete function, and store store title/name in the history
   const resolveTitle = (item) => {
-    return (item && item.title) || 'Amazon UK'
+    return (item && item.title) || 'Direct Store'
   }
 
   const getItem = (cartItem) => {
@@ -71,8 +70,6 @@ const History = (props) => {
     const quantities = (cartItem && cartItem.quantities);
     const cartLength = (carts && carts.length);
     const cart = (carts && carts.find(cart => cart.imageUrl));
-
-    if (cart) Image.prefetch(cart.imageUrl);
 
     const item = {
       quantities: quantities || cartLength,
@@ -84,6 +81,11 @@ const History = (props) => {
     return item
   }
 
+  const getDetails = (detail, item) => {
+    setOrder({ ...detail, ...item })
+    navigation.navigate('TrackOrder', { screen: 'OrderInformation' })
+  }
+
   return (
     <Block flex center>
       <Loader isLoading={isLoading} />
@@ -91,15 +93,17 @@ const History = (props) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.container}
       >
-        {histories && histories.map((cartHistory) => (
+        {draft && draft.map((cartHistory) => (
         <Card
           titleStyles={styles.titleStyles}
           item={getItem(cartHistory)}
           horizontal
+          onPress={() => getDetails(cartHistory, getItem(cartHistory))}
+          key={cartHistory.createdAt}
           style={{ maxHeight: 75, minHeight: 75 }}
           imgContainerFlex={0.34}
         />))}
-        {!histories && (
+        {!draft && (
         <Fragment>
           <Block flex column center style={styles.goodsStyle}>
             <Icon name="ios-clipboard-outline" size={thumbMeasure} style={{ color: "#DCDCDC", }} />
@@ -127,4 +131,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default History;
+export default DRAFT;

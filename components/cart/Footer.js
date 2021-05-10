@@ -47,7 +47,7 @@ const Footer = (props) => {
         </Button>
 
         <Button onPress={() => checkout()} style={checkoutButtonStyle}>
-          <Text style={{ color: '#fff', fontFamily: 'montserrat-regular' }}>Go to checkout</Text>
+          <Text style={{ color: '#fff', fontFamily: 'montserrat-bold' }}>Go to checkout</Text>
         </Button>
       </Block>
     </Block>

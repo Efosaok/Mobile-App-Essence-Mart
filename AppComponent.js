@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, BackAndroid } from 'react-native';
+import { Image, Alert } from 'react-native';
 import AppLoading from 'expo-app-loading';
 import * as Analytics from 'expo-firebase-analytics';
-// import RNRestart from 'react-native-restart';
+import RNRestart from 'react-native-restart';
 import * as Font from 'expo-font';
 import { Asset } from 'expo-asset';
 import { Block, GalioProvider, Toast } from 'galio-framework';
 import { NavigationContainer } from '@react-navigation/native';
+// import RNExitApp from 'react-native-exit-app';
 // import * as SplashScreen from 'expo-splash-screen';
 import { setNativeExceptionHandler, setJSExceptionHandler } from "react-native-exception-handler";
 
@@ -109,11 +110,11 @@ export default function AppComponent (props) {
       Alert.alert(
         "Unexpected error occurred",
         `
-          Error: ${isFatal ? "Fatal:" : ""} ${e.name} ${e.message}
+          Error: ${isFatal ? "Fatal:" : ""} ${error.name} ${error.message}
   
           We have reported this to our team ! Please close the app and start again!
           `,
-        [{ text: "Close", onPress: () => BackAndroid.exitApp() }]
+        [{ text: "Close", onPress: () => RNRestart.Restart() /*RNExitApp.exitApp()*/ }]
       );
     } else {
       console.log(error); // So that we can see it in the ADB logs in case of Android if needed

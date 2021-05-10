@@ -13,9 +13,9 @@ const { width } = Dimensions.get("screen");
 const Cart = (props) => {
   const { cart } = useCartContext();
 
-  const isEmptyCart = cart && cart.length
+  const hasCart = cart && cart.length
 
-  if (isEmptyCart) {
+  if (hasCart) {
     return (
       <Block
         styles={{

@@ -16,11 +16,14 @@ const initialState = {
   cart: null,
   payment: null,
   store: null,
-  histories: null
+  histories: null,
+  ongoing: null,
+  draft: null,
+  order: null,
 }
 
 function reducer (state, action) {
-  const { cart, index, data, store, histories } = action
+  const { cart, index, data, store } = action
   switch (action.type) {
     case 'INITIALIZE_CART_PAYMENT':
       return {
@@ -40,10 +43,22 @@ function reducer (state, action) {
     case 'UPDATE_HISTORY':
       return {
         ...state,
-        histories: histories
+        ...data
+      }
+
+    case 'UPDATE_ORDER':
+      return {
+        ...state,
+        ...data
       }
 
     case 'ADD_TO_CART':
+      return {
+        ...state,
+        cart
+      }
+
+    case 'CLEAR_CART':
       return {
         ...state,
         cart
@@ -101,10 +116,39 @@ const useCart = () => {
     })
   }
 
-  const setHistory = histories => {
+  // On finished order, then clear cart
+  const clearCart = () => {
+    dispatch({
+      type: 'CLEAR_CART',
+      cart: null
+    })
+  }
+
+  const setHistory = (histories, status) => {
+    let data
+    switch (status) {
+      case 'PENDING':
+        data = { ongoing: histories }
+        break;
+
+      case 'DRAFT':
+        data = { draft: histories }
+        break;
+    
+      default:
+        data = { histories }
+        break;
+    }
     dispatch({
       type: 'UPDATE_HISTORY',
-      histories
+      data
+    })
+  }
+
+  const setOrder = (order, status) => {
+    dispatch({
+      type: 'UPDATE_ORDER',
+      data: { order }
     })
   }
 
@@ -150,7 +194,7 @@ const useCart = () => {
     })
   }
 
-  const { cart, payment, store, histories } = state
+  const { cart, payment, store, histories, ongoing, draft, order } = state
 
   return {
     addToCart,
@@ -161,10 +205,15 @@ const useCart = () => {
     updateCartPayment,
     setCurrentStore,
     setHistory,
+    clearCart,
+    setOrder,
     store,
     cart,
     payment,
-    histories
+    histories,
+    ongoing,
+    draft,
+    order
   }
 }
 

@@ -195,7 +195,7 @@ const Profile = ({ navigation }) => {
         <ScrollView showsVerticalScrollIndicator={false}>
           <Block flex style={{ marginTop: 20 }}>
             <Block row style={{ paddingVertical: 14, paddingHorizontal: 15 }} space="between">
-              <Text bold size={16} color="#2c2c2c" style={{ marginTop: 3 }}>
+              <Text bold size={16} style={{ marginTop: 3, color: nowTheme.COLORS.HEADER }}>
                 Other Information
               </Text>
               {/* <Button

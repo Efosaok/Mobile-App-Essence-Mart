@@ -11,6 +11,9 @@ import firebase from '../shared/firebase'
 import { updateUser } from '../shared/methods/Users';
 import { useProfileContext } from '../context/ProfileContext';
 import { useUserContext } from '../context/UserContext';
+import { useCartContext } from '../context/CartContext';
+import { createOrder } from '../shared/methods/Orders';
+import { useStoreListContext } from '../context/StoreListContext';
 
 const { height, width } = Dimensions.get('window');
 const iPhoneX = () =>
@@ -43,15 +46,35 @@ const BasketButton = ({ isWhite, style, navigation, name, size, onPress }) => (
   </TouchableOpacity>
 );
 
-
+const Quantity = (item) => Number(item.quantity || 1)
+const Price = (item) => Number(item.price || 0);
 
 const Header = (props) => {
   const { profile, setProfileError, setProfileLoading, setLoadingMessage } = useProfileContext();
-  const { user, updateUser: updateUserState } = useUserContext();
+  const { user, updateUser: updateUserState, isAuthenticated } = useUserContext();
+  const { cart, clearCart } = useCartContext()
+  const { store } = useStoreListContext()
+  const items = cart && cart.map((item) => Quantity(item) * Price(item));
+  const quantites = items && items.reduce((prev, item) => Quantity(item) + prev, 0);
+
+  const { route } = props;
+  const params = route && route.params
+  const id = params && params.id;
+  const isDraft = params && params.isDraft;
+
   const handleLeftPress = () => {
     const { back, navigation } = props;
     return back ? navigation.goBack() : navigation.openDrawer();
   };
+
+  const saveCart = () => {
+    createOrder(cart, user, store, quantites, 'DRAFT').then((snapshot) => {
+      console.log('snapshot.id', snapshot.id)
+      clearCart()
+      props.navigation.navigate('TrackOrder', { screen: 'Order', params: { id: 'Draft' } })
+    })
+  }
+
   const renderRight = () => {
     const { white, title, navigation } = props;
     
@@ -89,6 +112,15 @@ const Header = (props) => {
           <BellButton key="chat-profile" navigation={navigation} isWhite={white} />,
           <BasketButton key="basket-deals" navigation={navigation} isWhite={white} />
         ];
+      case 'Shopping Cart': {
+        const hasCart = cart && cart.length
+        const existed = (isDraft || id)
+        console.log('existed', existed)
+        return [
+          // <BellButton key="chat-profile" navigation={navigation} isWhite={white} />,
+          (!existed && hasCart && isAuthenticated) && <Text onPress={saveCart} bold color={nowTheme.COLORS.PRIMARY}>Save</Text>
+        ];
+      }
       case 'Edit Profile': {
         const updateProfile = () => {
           try {
@@ -263,14 +295,13 @@ const Header = (props) => {
 
   const renderTabs = () => {
     const { tabs, tabIndex, navigation } = props;
-    const defaultTab = tabs && tabs[0] && tabs[0].id;
 
     if (!tabs) return null;
 
     return (
       <Tabs
         data={tabs || []}
-        initialIndex={tabIndex || defaultTab}
+        initialIndex={tabIndex}
         onChange={id => navigation.setParams({ tabId: id })}
       />
     );
@@ -314,6 +345,7 @@ const Header = (props) => {
   }
   
   const navbarStyles = [styles.navbar, bgColor && { backgroundColor: bgColor }];
+  const adjustProfileSpacing = title === 'Edit Profile' && { width: '90%' }
 
   return (
     <Block style={headerStyles}>
@@ -329,6 +361,7 @@ const Header = (props) => {
         leftStyle={{ paddingVertical: 12, flex: 0.2 }}
         titleStyle={[
           styles.title,
+          adjustProfileSpacing,
           { color: nowTheme.COLORS[white ? 'WHITE' : 'HEADER'] },
           titleColor && { color: titleColor }
         ]}

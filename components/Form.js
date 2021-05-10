@@ -193,8 +193,10 @@ function Form ({
                           <Input
                             placeholder="Password"
                             style={styles.inputs}
-                            secureTextEntry={true}
+                            // secureTextEntry={true}
                             value={inputData.password}
+                            viewPass
+                            password
                             onChangeText={(val) => updateInputVal(val, 'password')}
                             iconContent={
                               <Icon

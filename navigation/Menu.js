@@ -32,7 +32,7 @@ function CustomDrawerContent({
     { title: "Stores", to: 'Home' },
     { title: "Login / Register", to: "Account" },
     { title: "Grocery Direct" },
-    { title: "Track Orders" },
+    { title: "Track Orders", to: 'TrackOrder' },
     { title: "Notification" },
     // { title: "Components", to: 'Components' },
     // { title: "Articles", to: 'Articles' },

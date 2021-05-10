@@ -8,6 +8,7 @@ import Loader from '../components/Loader';
 import { useToastContext } from '../context/ToastContext';
 import { createOrder } from '../shared/methods/Orders';
 import { useUserContext } from '../context/UserContext';
+import { useStoreListContext } from '../context/StoreListContext';
 // https://medium.com/react-native-nigeria/integrating-payment-in-your-react-native-application-in-nigeria-53962aa116c6
 
 const verifyTransaction = (reference) => `https://api.paystack.co/transaction/verify/${reference}`
@@ -21,7 +22,8 @@ export default function Checkout(props) {
   const [hasCheckout, setCheckout] = useState(false)
   const { setToast } = useToastContext()
   const { user } = useUserContext()
-  const { payment, updateCartPayment, cart } = useCartContext();
+  const { store } = useStoreListContext()
+  const { payment, updateCartPayment, cart, clearCart } = useCartContext();
   // const {} = use
   const WEBVIEW_REF = React.createRef()
   // const authorization_url = 'https://checkout.paystack.com/luKuasMan';
@@ -36,6 +38,11 @@ export default function Checkout(props) {
       { text: "OK", onPress: () => setErrorMessage("") }
     ])
   }
+
+  const Quantity = (item) => Number(item.quantity || 1)
+  const Price = (item) => Number(item.price || 0);
+  const items = cart && cart.map((item) => Quantity(item) * Price(item));
+  const quantites = items && items.reduce((prev, item) => Quantity(item) + prev, 0);
 
   const getPaymentInfo = async () => {
     try {
@@ -52,18 +59,18 @@ export default function Checkout(props) {
       await axios(options)
       .then((res) => {
         setToast({ message: `Your Order has been placed successfuly
-          We\'d redirect you to history`, type: 'success'})
+          We\'d redirect you shortly`, type: 'success'})
         setIsLoading(false)
         setErrorMessage('')
         setLoaderMessage('')
         updateCartPayment(res.data)
-        createOrder(cart, user)
-        const timeout = setTimeout(() => {
-          clearTimeout(timeout)
+        createOrder(cart, user, store, quantites)
+        .then((snapshot) => {
+          console.log('snapshot.id', snapshot.id)
+          clearCart()
           checkoutCount = 0
-          // setMessage('')
-          props.navigation.navigate('Shopping', { screen: 'Cart' })
-        }, 5000);
+          props.navigation.navigate('Shopping', { screen: 'OrderConfirmed', params: { id: snapshot.id } })
+        })
       })
       .catch((error) => {
         console.log('error', JSON.stringify(error))
@@ -91,7 +98,7 @@ export default function Checkout(props) {
     }
   };
 
-  if (!payment) {
+  if (!payment || !payment.authorization_url) {
     try {
       <Block flex row style={{ marginTop: 40, marginVertical: 8, }}>
         {Alert.alert(null, 'Unable to Process the payment, Pleas try again.', [
@@ -111,7 +118,7 @@ export default function Checkout(props) {
       {isLoading && <Loader text={loaderMessage} isLoading={isLoading} />}
       <WebView
         ref={WEBVIEW_REF}
-        source={{ uri: payment.authorization_url }}
+        source={{ uri: payment && payment.authorization_url }}
         style={{ marginTop: 40 }}
         onNavigationStateChange={ onNavigationStateChange }
       />

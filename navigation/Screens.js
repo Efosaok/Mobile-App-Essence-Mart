@@ -18,6 +18,9 @@ import Store from '../screens/Store';
 import CartScreen from '../screens/Cart';
 import Settings from '../screens/Settings';
 import Checkout from '../screens/Checkout';
+import OrderConfirmed from '../screens/OrderConfirmed';
+import OrderTracking from '../screens/OrderTracking';
+import OrderInformation from '../screens/OrderInformation';
 // drawer
 import CustomDrawerContent from "./Menu";
 // header for screens
@@ -25,6 +28,7 @@ import { Header, Icon} from '../components';
 import { nowTheme, tabs } from "../constants";
 import { useUserContext } from '../context/UserContext';
 import { useCartContext } from '../context/CartContext';
+import Dashboard from '../screens/Dashboard';
 
 const { width } = Dimensions.get("screen");
 
@@ -73,6 +77,52 @@ function CheckoutStack(props) {
             />
           ),
           headerTransparent: true
+        }}
+      />
+      <Stack.Screen
+        name="OrderConfirmed"
+        component={OrderConfirmed}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              // transparent
+              title="Confirmed Order"
+              navigation={navigation}
+              scene={scene}
+            />
+          ),
+          headerTransparent: true
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function OrderStack(props) {
+  return (
+    <Stack.Navigator initialRouteName="Cart" mode="card" headerMode="screen">
+      <Stack.Screen
+        name="Order"
+        component={OrderTracking}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              // transparent
+              title="Order"
+              navigation={navigation}
+              scene={scene}
+            />
+          ),
+          headerTransparent: true
+        }}
+      />
+      <Stack.Screen
+        name="OrderInformation"
+        component={OrderInformation}
+        options={{
+          headerTitleStyle: { display: 'none' },
+          headerBackTitleStyle:{ color: nowTheme.COLORS.PRIMARY, display: 'none' },
+          headerTintColor: nowTheme.COLORS.PRIMARY,
         }}
       />
     </Stack.Navigator>
@@ -299,6 +349,7 @@ function AppStack(props) {
       {/* <Drawer.Screen name="Components" component={ComponentsStack} /> */}
       {renderAccount()}
       <Drawer.Screen name="Stores" component={StoresStack} />
+      <Drawer.Screen name="TrackOrder" component={OrderStack} />
       <Drawer.Screen name="Articles" component={ArticlesStack} />
       <Drawer.Screen name="Store" component={StoreStack} />
       <Drawer.Screen name="Settings" component={SettingsStack} />
