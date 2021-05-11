@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { withNavigation } from '@react-navigation/compat';
 import { TouchableOpacity, StyleSheet, Platform, Dimensions, Keyboard } from 'react-native';
 import { Button, Block, NavBar, Text, theme, Button as GaButton } from 'galio-framework';
@@ -14,6 +14,7 @@ import { useUserContext } from '../context/UserContext';
 import { useCartContext } from '../context/CartContext';
 import { createOrder } from '../shared/methods/Orders';
 import { useStoreListContext } from '../context/StoreListContext';
+import Loader from './Loader';
 
 const { height, width } = Dimensions.get('window');
 const iPhoneX = () =>
@@ -53,13 +54,13 @@ const Header = (props) => {
   const { profile, setProfileError, setProfileLoading, setLoadingMessage } = useProfileContext();
   const { user, updateUser: updateUserState, isAuthenticated } = useUserContext();
   const { cart, clearCart } = useCartContext()
+  const [isLoading, setLoading] = useState(false)
   const { store } = useStoreListContext()
   const items = cart && cart.map((item) => Quantity(item) * Price(item));
-  const quantites = items && items.reduce((prev, item) => Quantity(item) + prev, 0);
-
-  const { route } = props;
-  const params = route && route.params
-  const id = params && params.id;
+  const quantities = items && items.reduce((prev, item) => Quantity(item) + prev, 0);
+  const { scene } = props;
+  const params = scene && scene.route && scene.route.params
+  const uid = params && params.uid;
   const isDraft = params && params.isDraft;
 
   const handleLeftPress = () => {
@@ -68,9 +69,12 @@ const Header = (props) => {
   };
 
   const saveCart = () => {
-    createOrder(cart, user, store, quantites, 'DRAFT').then((snapshot) => {
+    setLoading(true);
+    createOrder(cart, user, store, quantities, 'DRAFT')
+    .then((snapshot) => {
       console.log('snapshot.id', snapshot.id)
-      clearCart()
+      clearCart();
+      setLoading(false);
       props.navigation.navigate('TrackOrder', { screen: 'Order', params: { id: 'Draft' } })
     })
   }
@@ -114,8 +118,7 @@ const Header = (props) => {
         ];
       case 'Shopping Cart': {
         const hasCart = cart && cart.length
-        const existed = (isDraft || id)
-        console.log('existed', existed)
+        const existed = (isDraft || uid)
         return [
           // <BellButton key="chat-profile" navigation={navigation} isWhite={white} />,
           (!existed && hasCart && isAuthenticated) && <Text onPress={saveCart} bold color={nowTheme.COLORS.PRIMARY}>Save</Text>
@@ -367,6 +370,7 @@ const Header = (props) => {
         ]}
         {...rest}
       />
+      <Loader isLoading={isLoading} />
       {renderHeader()}
     </Block>
   );

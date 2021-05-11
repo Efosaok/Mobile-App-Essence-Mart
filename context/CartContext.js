@@ -1,7 +1,6 @@
-import { useReducer, useEffect } from 'react'
+import { useReducer, useEffect, useState } from 'react'
 import constate from 'constate'
 import logger from './Logger'
-import useLocalStorage from '../shared/useLocalStorage';
 
 const Quantity = (item) => Number(item.quantity) || 1;
 
@@ -61,7 +60,8 @@ function reducer (state, action) {
     case 'CLEAR_CART':
       return {
         ...state,
-        cart
+        cart,
+        order: null,
       }
 
     case 'CURRENT_STORE':
@@ -102,8 +102,8 @@ function reducer (state, action) {
 const loggerReducer = logger(reducer);
 
 const useCart = () => {
-  const [data, setData] = useLocalStorage('cart', initialState);
-  const [state, dispatch] = useReducer(loggerReducer, data);
+  const [data, setData] = useState(initialState);
+  const [state, dispatch] = useReducer(loggerReducer, data)
 
   useEffect(() => {
     setData(state)
@@ -124,7 +124,7 @@ const useCart = () => {
     })
   }
 
-  const setHistory = (histories, status) => {
+  const setOrderCount = (histories, status) => {
     let data
     switch (status) {
       case 'PENDING':
@@ -204,7 +204,7 @@ const useCart = () => {
     initailizeCartPayment,
     updateCartPayment,
     setCurrentStore,
-    setHistory,
+    setOrderCount,
     clearCart,
     setOrder,
     store,

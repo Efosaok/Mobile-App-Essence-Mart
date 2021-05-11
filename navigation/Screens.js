@@ -18,9 +18,9 @@ import Store from '../screens/Store';
 import CartScreen from '../screens/Cart';
 import Settings from '../screens/Settings';
 import Checkout from '../screens/Checkout';
-import OrderConfirmed from '../screens/OrderConfirmed';
-import OrderTracking from '../screens/OrderTracking';
-import OrderInformation from '../screens/OrderInformation';
+import OrderConfirmed from '../screens/Order/OrderConfirmed';
+import OrderTracking from '../screens/Orders';
+import OrderInformation from '../screens/Order/OrderInformation';
 // drawer
 import CustomDrawerContent from "./Menu";
 // header for screens
@@ -53,12 +53,13 @@ function CheckoutStack(props) {
         name="Cart"
         component={CartScreen}
         options={{
-          header: ({ navigation, scene }) => (
+          header: ({ navigation, scene, route }) => (
             <Header
               // transparent
               title="Shopping Cart"
               navigation={navigation}
               scene={scene}
+              route={route}
             />
           ),
           headerTransparent: true
@@ -120,6 +121,18 @@ function OrderStack(props) {
         name="OrderInformation"
         component={OrderInformation}
         options={{
+
+          // header: ({ navigation, scene }) => (
+          //   <Header
+          //     // transparent
+          //     title="Order"
+          //     navigation={navigation}
+          //     scene={scene}
+          //   />
+          // ),
+          // headerTransparent: true
+
+
           headerTitleStyle: { display: 'none' },
           headerBackTitleStyle:{ color: nowTheme.COLORS.PRIMARY, display: 'none' },
           headerTintColor: nowTheme.COLORS.PRIMARY,

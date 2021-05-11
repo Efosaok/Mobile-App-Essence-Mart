@@ -7,7 +7,8 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
-  Alert
+  Alert,
+  SafeAreaView,
 } from 'react-native';
 
 // galio components
@@ -16,14 +17,15 @@ import {
 } from 'galio-framework';
 import axios from "axios";
 
-import { Button, Icon } from '../components';
-import { nowTheme } from "../constants";
-import { Images } from '../constants';
-import { useCartContext } from '../context/CartContext';
-import ItemGroup from '../components/cart/ItemGroup';
-import Loader from '../components/Loader';
-import { currencies } from '../constants/currencies';
-import { useUserContext } from '../context/UserContext';
+import { Button, Icon } from '../../components';
+import { nowTheme } from "../../constants";
+import { Images } from '../../constants';
+import { useCartContext } from '../../context/CartContext';
+import ItemGroup from '../../components/cart/ItemGroup';
+import Loader from '../../components/Loader';
+import { currencies } from '../../constants/currencies';
+import { useUserContext } from '../../context/UserContext';
+// import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { height, width } = Dimensions.get('window');
 
@@ -57,7 +59,7 @@ const OrderInformation = (props) => {
   const cta = isDraft ? 'Order Now' : 'Re-Order'
   const cta2 = isDraft ? 'View' : 'Rating';
   const uid = order && order.uid;
-  const items = cart && cart.map((item) => Quantity(item) * IndexedPrice(item));
+  const items = order && order.cart && order.cart.map((item) => Quantity(item) * IndexedPrice(item));
   const total = items && items.reduce((prev, amt) => Number(amt) + prev, 0);
 
   const showScreen = () => {
@@ -84,7 +86,9 @@ const OrderInformation = (props) => {
 
   const handleRatingOrViewOrder = () => {
     if (isDraft) {
+      setIsLoading(true)
       addToCart(order && order.cart)
+      setIsLoading(false)
       navigation.navigate('Shopping', { screen: 'Cart', params: { isDraft, uid } });
     }
   }
@@ -233,27 +237,22 @@ const OrderInformation = (props) => {
         </Text>
       </Block>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.commentSection}
-        >
-        <Block center style={[styles.container, {paddingTop: 10,}]}>
-          {/* <Block row style={styles.addressSection}> */}
-            <ItemGroup carts={order && order.cart} />
-          {/* </Block> */}
+      <SafeAreaView style={styles.commentSection}>
+        <Block flex={3.1} center style={[styles.container, {paddingTop: 10,}]}>
+          <ItemGroup carts={order && order.cart} />
         </Block>
 
-        <Block row>
+        <Block flex={0.1} style={{minHeight: 15}} row>
           <Text size="13" bold style={[styles.articleButton, { paddingTop: 3, paddingBottom: 5, paddingLeft: 22 }]}>
             Note
           </Text>
         </Block>
 
-        <Block flex center style={[styles.container, {paddingTop: 10,}]}>
+        <Block flex={0.8} center style={[styles.container, {paddingTop: 10, paddingBottom: 5}]}>
           <Block row style={[styles.addressSection, {borderWidth: 0}]}>
             <DismissKeyboard>
               <TextInput
-                style={{ minHeight: 100, backgroundColor: '#eee', flex: 1, padding: 10 }}
+                style={{ minHeight: 50, backgroundColor: '#eee', padding: 10, width: '100%' }}
                 placeholder="Please call me when you come. Thank you!"
                 multiline
                 numberOfLines={10}
@@ -263,7 +262,7 @@ const OrderInformation = (props) => {
             </DismissKeyboard>
           </Block>
         </Block>
-      </ScrollView>
+      </SafeAreaView>
 
       <Block center style={[styles.container, {paddingTop: 10, paddingBottom: 30 }]}>
         <Block row space="between" style={buttonContainerStyle}>
@@ -343,8 +342,10 @@ const styles = StyleSheet.create({
   commentSection: {
     // width: width - (nowTheme.SIZES.BASE * 2)
     flex: 1,
-    paddingBottom: height * 0.1,
-    marginBottom: height * 0.1,
+    // paddingBottom: height * 0.1,
+    // marginBottom: height * 0.1,
+    borderWidth: .41,
+    borderColor: nowTheme.COLORS.MUTED,
   }
 });
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Dimensions,
   StyleSheet,
@@ -11,9 +11,10 @@ import {
 import {
   Text, Block, NavBar, Icon,
 } from 'galio-framework';
-import { Button } from '../components';
-import nowTheme from "../constants/Theme";
-import { Images } from '../constants';
+import { Button } from '../../components';
+import nowTheme from "../../constants/Theme";
+import { Images } from '../../constants';
+import { useCartContext } from '../../context/CartContext';
 
 const { height, width } = Dimensions.get('window');
 
@@ -22,6 +23,12 @@ const thumbMeasure = (width - (width / 5));
 const OrderConfirmed = (props) => {
   const { navigation, route } = props;
   const { id } = route.params;
+  const { initailizeCartPayment } = useCartContext();
+
+  useEffect(() => {
+    initailizeCartPayment({ data: null })
+  }, [])
+
   // TODO: clear cart on this screen or on Navigating to this screen
   return (
     <Block flex center space="around" style={styles.container}>
@@ -40,7 +47,7 @@ const OrderConfirmed = (props) => {
           style={{ marginBottom: nowTheme.SIZES.BASE }}
         >
           <Text
-            size={nowTheme.SIZES.FONT * 1.675}
+            size={nowTheme.SIZES.FONT}
             bold
           >
             #{id || '45C23B'}&nbsp;

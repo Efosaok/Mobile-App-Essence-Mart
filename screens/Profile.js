@@ -16,22 +16,7 @@ const thumbMeasure = (width - 48 - 32) / 3;
 
 const Profile = ({ navigation }) => {
   const { user, setUser } = useUserContext();
-  const { setHistory, histories } = useCartContext()
-
-  useEffect(() => {
-    try {
-      getOrders(user.uid)
-      .then((orders) => {
-        const docs = orders.docs;
-        const data = []
-        docs.forEach((doc) => data.push(doc.data()))
-        setHistory(data)
-      })
-      .catch((err) => console.log('err', err))
-    } catch (error) {
-      console.log('error -- useEffect', error)
-    }
-  }, [])
+  const { histories } = useCartContext()
 
   const sendEmailVerification = () => {
     try {

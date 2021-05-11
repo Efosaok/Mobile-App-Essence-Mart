@@ -33,7 +33,7 @@ const DrawerItem = (props) => {
             style={{ opacity: 0.5 }}
           />
         );
-      case "Grocery Direct":
+      case "Custom Orders":
         return (
           <Icon
             name="tag-content2x"

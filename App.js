@@ -1,4 +1,6 @@
 import 'react-native-gesture-handler'
+// Add this line to your `index.js`
+import 'react-native-get-random-values'
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppComponent from './AppComponent'

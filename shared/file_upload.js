@@ -22,7 +22,7 @@ export const ResizeImage = (selectedPictureUri, userID, cb) => {
   .then((response) => {
     // response.uri is the URI of the new image that can now be displayed, uploaded...
     //resized image uri
-    onsole.log('response', response)
+    console.log('response', response)
     let uri = response.uri;
     //generating image name
     let imageName = 'profile' + (userID || 'randomId');
@@ -44,7 +44,7 @@ export const TakePicture = async (cb) => {
       if (Platform.OS !== 'web') {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert('Sorry, we need camera roll permissions to make this work!');
+          Alert.alert('Permissions denied', 'Sorry, Camera roll permissions is needed!');
         } else {
           let result = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -72,7 +72,7 @@ export const SelectImage = async (cb) => {
     if (Platform.OS !== 'web') {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Sorry, we need camera roll permissions to make this work!');
+        Alert.alert('Permissions denied', 'Sorry, Image library permissions is needed!');
       } else {
         let result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
