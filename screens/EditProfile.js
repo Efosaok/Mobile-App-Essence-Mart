@@ -1,141 +1,234 @@
-import React, { Fragment, useState } from "react";
-// import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  SafeAreaView
-} from "react-native";
-import { Block, Text, theme, Icon } from "galio-framework";
-import { Switch } from "../components";
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Dimensions, Image, ImageBackground, Alert } from 'react-native';
+import { Block, Text, theme, Button as GaButton } from 'galio-framework';
+import { Button } from '../components';
+import { Images, nowTheme } from '../constants';
+import { useUserContext } from '../context/UserContext';
+import firebase from '../shared/firebase';
+import Form from '../components/Form';
+import { TakePicture, SelectImage } from '../shared/file_upload';
+import { useProfileContext } from '../context/ProfileContext';
 
-import nowTheme from "../constants/Theme";
+const { width, height } = Dimensions.get('screen');
+const defaultData = {
+  email: '',
+  photoURL: '',
+  displayName: '',
+  phoneNumber: '',
+  streetAddress: '',
+  streetAddress2: '',
+}
 
-const Settings = (props) => {
-  const [state, setState] = useState({});
+const thumbMeasure = (width - 48 - 32) / 3;
 
-  const toggleSwitch = switchNumber =>
-    setState({ [switchNumber]: !state[switchNumber] });
+const EditProfile = ({ navigation }) => {
+  const { user, updateUser } = useUserContext();
+  const { setProfile, profile, profileError, profileLoading, loadingMessage } = useProfileContext()
+  const [loaderMessage, setLoaderMessage] = useState('');
+  const [message, setMessage] = useState('')
+  const [state, setState] = useState({
+    isLoading: false,
+    isLoaded: false
+  })
 
-  const renderItem = ({ item }) => {
-    const { navigate } = props.navigation;
+  useEffect(() => {
+    setProfile({ ...defaultData, ...user })
+  }, [])
 
-    switch (item.type) {
-      case "switch":
-        return (
-          <Block row middle space="between" style={styles.rows}>
-            <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="#525F7F">{item.title}</Text>
-            <Switch
-              onValueChange={() => toggleSwitch(item.id)}
-              value={state[item.id]}
-            />
-          </Block>
-        );
-      case "button":
-        return (
-          <Block style={styles.rows}>
-            <TouchableOpacity onPress={() => navigate(item.id)}>
-              <Block row middle space="between" style={{ paddingTop: 7 }}>
-                <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="#525F7F">{item.title}</Text>
-                <Icon
-                  name="angle-right"
-                  family="font-awesome"
-                  style={{ paddingRight: 5 }}
-                />
-              </Block>
-            </TouchableOpacity>
-          </Block>
-        );
-      default:
-        break;
-    }
-  };
-
-  const settings = [
-    {
-      title: "Recommended Settings",
-      desc: "These are the most important settings",
-      items: [
-        { title: "Use FaceID to sign in", id: "face", type: "switch" },
-        { title: "Auto-Lock security", id: "autolock", type: "switch" },
-        { title: "Notifications", id: "NotificationsSettings", type: "button" }
-      ]
-    },
-    {
-      title: "Payment Settings",
-      desc: "These are also important settings",
-      items: [
-        { title: "Manage Payment Options", id: "Payment", type: "button" },
-        { title: "Manage Gift Cards", id: "gift", type: "button" }
-      ]
-    },
-    {
-      title: "Privacy Settings",
-      desc: "Third most important settings",
-      items: [
-        { title: "User Agreement", id: "Agreement", type: "button" },
-        { title: "Privacy", id: "Privacy", type: "button" },
-        { title: "About", id: "About", type: "button" }
-      ]
-    }
-  ]
-
-  const ItemComponent = (props) => {
-    return (
-      <Fragment>
-        <Block center style={styles.title}>
-          <Text style={{ fontFamily: 'montserrat-bold', paddingBottom: 5 }} size={theme.SIZES.BASE} color={nowTheme.COLORS.TEXT}>
-            {props && props.item && props.item.title}
-          </Text>
-          <Text style={{ fontFamily: 'montserrat-regular' }} size={12} color={nowTheme.COLORS.CAPTION} color={nowTheme.COLORS.TEXT}>
-            {props && props.item && props.item.desc}
-          </Text>
-        </Block>
-        <FlatList
-          data={(props && props.item && props.item.items) || []}
-          keyExtractor={(item, index) => item.id.toString()}
-          renderItem={renderItem}
-        />
-      </Fragment>
-    )
+  const updateInputVal = (val, prop) => {
+    const currentState = {...profile};
+    currentState[prop] = val;
+    setProfile(currentState);
   }
 
+  const displayMessage = () => {
+    profileError &&  Alert.alert(null, `${profileError}`, [
+      { text: "OK", onPress: () => setMessage("") }
+    ]);
+  }
+
+  const BlobImage = async(imageUri) => {
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    const filename = 'profile_' + user.uid;
+    var ref =  firebase.storage().ref().child(filename);
+    return ref.put(blob);
+  }
+
+  const handleUploading = async (e) => {
+    try {
+      console.log('Gallery', e)
+      setState({ ...state, isLoading: true });
+      BlobImage(e)
+      .then((res) => {
+        const filename = 'profile_' + user.uid;
+        setLoaderMessage('Uploading your picture')
+        firebase.storage().ref(filename).getDownloadURL()
+        .then((photoURL) => {
+          setProfile({ ...profile, photoURL })
+          setLoaderMessage('Updating your profile')
+          firebase.auth().currentUser.updateProfile({ photoURL })
+          .then(() => {
+            updateUser({ photoURL })
+            firebase.auth().currentUser.reload()
+            setState({ ...state, isLoading: false, photoURL });
+            Alert.alert(
+              'Photo uploaded!',
+              'Your photo has been uploaded to Firebase Cloud Storage!'
+            );
+          })
+          .catch(() => setState({ ...state, isLoading: false, photoURL }))
+        })
+        .catch((err) => {
+          setState({ ...state, isLoading: false })
+          Alert.alert(null, err.message || err);
+        })
+      })
+      .catch((err) => {
+        setState({ ...state, isLoading: false })
+        Alert.alert(null, err.message || err);
+      })
+    } catch (error) {
+      console.log('EditProfile - error', error)
+    }
+  }
+
+  const uploadOptions = () => {
+    Alert.alert(null, "Select or take a picture", [
+      { text: "Camera", onPress: () => TakePicture(handleUploading) },
+      { text: "Gallery", onPress: () => SelectImage(handleUploading) }
+    ])
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Block flex style={styles.wrapper}>
-        <Block flex row>
-          <FlatList
-            data={settings}
-            keyExtractor={(item, index) => item.title.split(' ').join('-')}
-            renderItem={ItemComponent}
-          />
-        </Block>
+    <Block style={{
+      flex: 1,
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+    }} >
+      <Block flex={0.6} >
+        <ImageBackground
+          source={Images.ProfileBackground}
+          style={styles.profileContainer}
+          imageStyle={styles.profileBackground}
+        >
+          <Block flex style={styles.profileCard}>
+            <Block style={{ position: 'absolute', width: width, zIndex: 5, paddingHorizontal: 20 }}>
+              <Block middle style={{ top: height * 0.15 }}>
+                <Image source={(profile && profile.photoURL) ? {uri: profile.photoURL} : Images.ProfilePicture} style={styles.avatar} />
+                <Button
+                  color="WARNING"
+                  style={{ height: 30, paddingHorizontal: 5, elevation: 0 }}
+                  textStyle={{ fontSize: 14 }}
+                  onPress={() => uploadOptions()}
+                  round
+                >
+                  Change Profile Photo
+                </Button>
+              </Block>
+              <Block style={{ top: height * 0.2 }}>
+                <Block middle >
+                  <Text
+                    style={{
+                      fontFamily: 'montserrat-bold',
+                      marginBottom: theme.SIZES.BASE / 2,
+                      fontWeight: '900',
+                      fontSize: 26
+                    }}
+                    color='#ffffff'
+                    >
+                    {(user && user.displayName) || "Teni Makanaki"}
+                  </Text>
+
+                  <Text
+                    size={16}
+                    color="white"
+                    style={{
+                      marginTop: 5,
+                      fontFamily: 'montserrat-bold',
+                      lineHeight: 20,
+                      fontWeight: 'bold',
+                      fontSize: 18,
+                      opacity: .8
+                    }}
+                  >
+                    {user && user.emailVerified && "Verified" }
+                  </Text>
+                </Block>
+                <Block style={styles.info}>
+                  {/* <Block row space="around"> */}
+
+                  <Form
+                    heading="Login"
+                    action="Login"
+                    updateInputVal={updateInputVal}
+                    onAuthSuggestionAction={() => navigation.navigate('Account', { screen: 'Register' })}
+                    authSuggestionDescription="Need an account? "
+                    authSuggestionAction="Register"
+                    displayMessage={displayMessage}
+                    isLoading={state.isLoading || profileLoading}
+                    loaderMessage={profileLoading ? loadingMessage : loaderMessage}
+                    inputData={profile || {}}
+                    isEditProfile
+                  />
+                  </Block>
+                {/* </Block> */}
+              </Block>
+
+            </Block>
+
+          </Block>
+        </ImageBackground>
       </Block>
-    </SafeAreaView>
-  );
+    </Block>
+  )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    paddingVertical: 10,
+  profileContainer: {
+    width,
+    height,
+    padding: 0,
+    zIndex: 1
   },
-  wrapper: {
-    paddingBottom: 10
+  profileBackground: {
+    width,
+    height: height * 0.6
   },
-  settings: {
-    paddingVertical: theme.SIZES.BASE / 3
+  info: {
+    // marginTop: 30,
+    paddingHorizontal: 10,
+    height: height * 0.8
   },
-  title: {
-    paddingTop: theme.SIZES.BASE,
-    paddingBottom: theme.SIZES.BASE / 2
+  avatarContainer: {
+    position: 'relative',
+    marginTop: -80
   },
-  rows: {
-    height: theme.SIZES.BASE * 2,
-    paddingHorizontal: theme.SIZES.BASE,
-    marginBottom: theme.SIZES.BASE / 2
+  avatar: {
+    width: thumbMeasure,
+    height: thumbMeasure,
+    borderRadius: 50,
+    borderWidth: 0,
+    // resizeMode: 'contain'
+  },
+  nameInfo: {
+    marginTop: 35
+  },
+  thumb: {
+    borderRadius: 4,
+    marginVertical: 4,
+    alignSelf: 'center',
+    width: thumbMeasure,
+    height: thumbMeasure
+  },
+  social: {
+    width: nowTheme.SIZES.BASE * 3,
+    height: nowTheme.SIZES.BASE * 3,
+    borderRadius: nowTheme.SIZES.BASE * 1.5,
+    justifyContent: 'center',
+    zIndex: 99,
+    marginHorizontal: 5
   }
 });
 
-export default Settings;
+export default EditProfile;

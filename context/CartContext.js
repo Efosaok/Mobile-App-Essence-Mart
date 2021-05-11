@@ -1,7 +1,6 @@
-import { useReducer, useEffect } from 'react'
+import { useReducer, useEffect, useState } from 'react'
 import constate from 'constate'
 import logger from './Logger'
-import useLocalStorage from '../shared/useLocalStorage';
 
 const Quantity = (item) => Number(item.quantity) || 1;
 
@@ -16,6 +15,10 @@ const initialState = {
   cart: null,
   payment: null,
   store: null,
+  histories: null,
+  ongoing: null,
+  draft: null,
+  order: null,
 }
 
 function reducer (state, action) {
@@ -27,10 +30,38 @@ function reducer (state, action) {
         payment: data
       }
 
+    case 'UPDATE_CART_PAYMENT':
+      return {
+        ...state,
+        payment: {
+          ...state.payment,
+          ...data
+        }
+      }
+
+    case 'UPDATE_HISTORY':
+      return {
+        ...state,
+        ...data
+      }
+
+    case 'UPDATE_ORDER':
+      return {
+        ...state,
+        ...data
+      }
+
     case 'ADD_TO_CART':
       return {
         ...state,
         cart
+      }
+
+    case 'CLEAR_CART':
+      return {
+        ...state,
+        cart,
+        order: null,
       }
 
     case 'CURRENT_STORE':
@@ -71,8 +102,8 @@ function reducer (state, action) {
 const loggerReducer = logger(reducer);
 
 const useCart = () => {
-  const [data, setData] = useLocalStorage('cart', initialState);
-  const [state, dispatch] = useReducer(loggerReducer, data);
+  const [data, setData] = useState(initialState);
+  const [state, dispatch] = useReducer(loggerReducer, data)
 
   useEffect(() => {
     setData(state)
@@ -85,9 +116,52 @@ const useCart = () => {
     })
   }
 
+  // On finished order, then clear cart
+  const clearCart = () => {
+    dispatch({
+      type: 'CLEAR_CART',
+      cart: null
+    })
+  }
+
+  const setOrderCount = (histories, status) => {
+    let data
+    switch (status) {
+      case 'PENDING':
+        data = { ongoing: histories }
+        break;
+
+      case 'DRAFT':
+        data = { draft: histories }
+        break;
+    
+      default:
+        data = { histories }
+        break;
+    }
+    dispatch({
+      type: 'UPDATE_HISTORY',
+      data
+    })
+  }
+
+  const setOrder = (order, status) => {
+    dispatch({
+      type: 'UPDATE_ORDER',
+      data: { order }
+    })
+  }
+
   const initailizeCartPayment = ({ data }) => {
     dispatch({
       type: 'INITIALIZE_CART_PAYMENT',
+      data
+    })
+  }
+
+  const updateCartPayment = ({ data }) => {
+    dispatch({
+      type: 'UPDATE_CART_PAYMENT',
       data
     })
   }
@@ -120,7 +194,7 @@ const useCart = () => {
     })
   }
 
-  const { cart, payment, store } = state
+  const { cart, payment, store, histories, ongoing, draft, order } = state
 
   return {
     addToCart,
@@ -128,10 +202,18 @@ const useCart = () => {
     increaseItemQuantity,
     decreaseItemQuantity,
     initailizeCartPayment,
+    updateCartPayment,
     setCurrentStore,
+    setOrderCount,
+    clearCart,
+    setOrder,
     store,
     cart,
-    payment
+    payment,
+    histories,
+    ongoing,
+    draft,
+    order
   }
 }
 

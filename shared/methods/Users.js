@@ -1,13 +1,66 @@
 import firebase from "../firebase";
 // import { LoginManager, AccessToken } from 'react-native-fbsdk';
 
-export const createUser = (user) => { 
-  return firebase.firestore().collection('Users').add({
-    ...user.providerData[0],
-    uid: user.uid
-  })
+function clean(obj) {
+  for (var propName in obj) {
+    if (obj[propName] === null || obj[propName] === undefined) {
+      delete obj[propName];
+    }
+  }
+  return obj
 }
 
+export const createUser = (user) => {
+  try {
+    return firebase
+    .firestore()
+    .collection('users')
+    .doc(user.uid)
+    .set({
+      ...user.providerData[0],
+      uid: user.uid
+    }, {merge: true})
+    .then((res) => {
+      console.log('updateUser -res', res)
+      return res
+    })
+  } catch (error) {
+    console.log('createUser - error', error)
+  }
+}
+
+export const updateUser = (userData, user) => {
+  try {
+    userData = (userData && userData.providerData && userData.providerData[0]) || userData;
+    delete userData.providerId
+    delete userData.refreshToken
+    delete userData.token
+
+    userData = clean(userData);
+    return firebase
+    .firestore()
+    .collection('users')
+    .doc(user.uid)
+    .set({
+      ...userData,
+      uid: user.uid
+    }, {merge: true})
+  } catch (error) {
+    console.log('updateUser error', error)
+  }
+}
+
+export const getUser = (userId) => {
+  try {
+    return firebase
+    .firestore()
+    .collection("users")
+    .doc(userId)
+    .get()
+  } catch (error) {
+    console.log('getUser - error', error)
+  }
+}
 // export async function onFacebookButtonPress() {
 //   try {
 //       // Attempt login with permissions

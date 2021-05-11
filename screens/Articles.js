@@ -13,7 +13,7 @@ class Articles extends React.Component {
       <Text size={16} style={styles.title}>
         Cards
       </Text>
-        <Card item={articles[0]} horizontal />
+        <Card titleStyles={{ fontWeight: 'bold', fontFamily: 'montserrat-bold', }} item={articles[0]} horizontal style={{ maxHeight: 85, minHeight: 85 }} imgContainerFlex={0.34} />
         <Block flex row>
           <Card item={articles[1]} style={{ marginRight: theme.SIZES.BASE }} />
           <Card item={articles[2]} />

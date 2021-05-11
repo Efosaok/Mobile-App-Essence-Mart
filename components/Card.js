@@ -17,7 +17,9 @@ class Card extends React.Component {
       ctaColor,
       imageStyle,
       ctaRight,
-      titleStyle
+      titleStyle,
+      imgContainerFlex,
+      onPress
     } = this.props;
 
     const imageStyles = [full ? styles.fullImage : styles.horizontalImage, imageStyle];
@@ -32,18 +34,17 @@ class Card extends React.Component {
     return (
       <Block row={horizontal} card flex style={cardContainer}>
         <TouchableWithoutFeedback>
-          <Block flex style={imgContainer}>
+          <Block flex={imgContainerFlex || 1} style={imgContainer}>
             <Image resizeMode="cover" source={item.image} style={imageStyles} />
           </Block>
         </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback>
+        <TouchableWithoutFeedback onPress={onPress}>
           <Block flex space="between" style={styles.cardDescription}>
             <Block flex>
               <Text
-                style={{ fontFamily: 'montserrat-regular' }}
                 size={14}
-                style={titleStyles}
-                color={nowTheme.COLORS.SECONDARY}
+                color={nowTheme.COLORS.TEXT}
+                style={[titleStyles, { fontFamily: 'montserrat-bold' }]}
               >
                 {item.title}
               </Text>
@@ -87,6 +88,8 @@ class Card extends React.Component {
                   <Block />
                 )}
             </Block>
+
+            {item.cta && (
             <Block right={ctaRight ? true : false}>
               <Text
                 style={styles.articleButton}
@@ -97,6 +100,29 @@ class Card extends React.Component {
               >
                 {item.cta}
               </Text>
+            </Block>)}
+            <Block flex row space="between">
+              <Block right={ctaRight ? true : false}>
+                <Text
+                  style={styles.articleButton}
+                  size={12}
+                  muted
+                  bold
+                >
+                  {item.quantities && `${item.quantities} Item(s)`}
+                </Text>
+              </Block>
+
+              <Block right={ctaRight ? true : false}>
+                <Text
+                  style={styles.articleButton}
+                  size={12}
+                  muted
+                  bold
+                >
+                  {item.createdAt}
+                </Text>
+              </Block>
             </Block>
           </Block>
         </TouchableWithoutFeedback>

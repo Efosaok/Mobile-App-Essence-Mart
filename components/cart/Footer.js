@@ -12,21 +12,25 @@ const Footer = (props) => {
   const { setLastActivity } = useLocationContext()
 
   const checkout = () => {
-    const { navigation, handleClick } = props;
-    if (isAuthenticated) {
-      return handleClick(() => navigation.navigate('Shopping', { screen: 'Checkout' }))
-    }
+    try {
+      const { navigation, handleClick } = props;
+      if (isAuthenticated) {
+        return handleClick(() => navigation.navigate('Shopping', { screen: 'Checkout' }))
+      }
 
-    Alert.alert(
-      null,
-      `Please login before proceeding to checkout`,
-      [
-        { text: "OK", onPress: () => {
-          setLastActivity(['Shopping', { screen: 'Checkout' }])
-          navigation.navigate('Account', { screen: 'Login' }) 
-        }}
-      ]
-    );
+      Alert.alert(
+        null,
+        `Please login before proceeding to checkout`,
+        [
+          { text: "OK", onPress: () => {
+            setLastActivity(['Shopping', { screen: 'Checkout' }])
+            navigation.navigate('Account', { screen: 'Login' }) 
+          }}
+        ]
+      );
+    } catch (error) {
+      console.log('footer error', error)
+    }
   }
 
   const { 
@@ -43,7 +47,7 @@ const Footer = (props) => {
         </Button>
 
         <Button onPress={() => checkout()} style={checkoutButtonStyle}>
-          <Text style={{ color: '#fff', fontFamily: 'montserrat-regular' }}>Go to checkout</Text>
+          <Text style={{ color: '#fff', fontFamily: 'montserrat-bold' }}>Go to checkout</Text>
         </Button>
       </Block>
     </Block>

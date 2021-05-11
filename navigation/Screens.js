@@ -4,9 +4,11 @@ import { Easing, Animated, Dimensions } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 // screens
 import Home from '../screens/Home';
 import Profile from '../screens/Profile';
+import EditProfile from '../screens/EditProfile';
 import Register from '../screens/Register';
 import Login from '../screens/Login';
 import Articles from '../screens/Articles';
@@ -16,6 +18,9 @@ import Store from '../screens/Store';
 import CartScreen from '../screens/Cart';
 import Settings from '../screens/Settings';
 import Checkout from '../screens/Checkout';
+import OrderConfirmed from '../screens/Order/OrderConfirmed';
+import OrderTracking from '../screens/Orders';
+import OrderInformation from '../screens/Order/OrderInformation';
 // drawer
 import CustomDrawerContent from "./Menu";
 // header for screens
@@ -23,6 +28,7 @@ import { Header, Icon} from '../components';
 import { nowTheme, tabs } from "../constants";
 import { useUserContext } from '../context/UserContext';
 import { useCartContext } from '../context/CartContext';
+import Dashboard from '../screens/Dashboard';
 
 const { width } = Dimensions.get("screen");
 
@@ -47,12 +53,13 @@ function CheckoutStack(props) {
         name="Cart"
         component={CartScreen}
         options={{
-          header: ({ navigation, scene }) => (
+          header: ({ navigation, scene, route }) => (
             <Header
               // transparent
               title="Shopping Cart"
               navigation={navigation}
               scene={scene}
+              route={route}
             />
           ),
           headerTransparent: true
@@ -71,6 +78,64 @@ function CheckoutStack(props) {
             />
           ),
           headerTransparent: true
+        }}
+      />
+      <Stack.Screen
+        name="OrderConfirmed"
+        component={OrderConfirmed}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              // transparent
+              title="Confirmed Order"
+              navigation={navigation}
+              scene={scene}
+            />
+          ),
+          headerTransparent: true
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function OrderStack(props) {
+  return (
+    <Stack.Navigator initialRouteName="Cart" mode="card" headerMode="screen">
+      <Stack.Screen
+        name="Order"
+        component={OrderTracking}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              // transparent
+              title="Order"
+              navigation={navigation}
+              scene={scene}
+            />
+          ),
+          headerTransparent: true
+        }}
+      />
+      <Stack.Screen
+        name="OrderInformation"
+        component={OrderInformation}
+        options={{
+
+          // header: ({ navigation, scene }) => (
+          //   <Header
+          //     // transparent
+          //     title="Order"
+          //     navigation={navigation}
+          //     scene={scene}
+          //   />
+          // ),
+          // headerTransparent: true
+
+
+          headerTitleStyle: { display: 'none' },
+          headerBackTitleStyle:{ color: nowTheme.COLORS.PRIMARY, display: 'none' },
+          headerTintColor: nowTheme.COLORS.PRIMARY,
         }}
       />
     </Stack.Navigator>
@@ -116,9 +181,9 @@ function AccountStack(props) {
 
 function ProfileStack(props) {
   return (
-    <Stack.Navigator initialRouteName="Profile" mode="card" headerMode="screen">
+    <Stack.Navigator initialRouteName="ViewProfile" mode="card" headerMode="screen">
       <Stack.Screen
-        name="Profile"
+        name="ViewProfile"
         component={Profile}
         options={{
           header: ({ navigation, scene }) => (
@@ -126,6 +191,23 @@ function ProfileStack(props) {
               transparent
               white
               title="Profile"
+              navigation={navigation}
+              scene={scene}
+            />
+          ),
+          cardStyle: { backgroundColor: "#FFFFFF" },
+          headerTransparent: true
+        }}
+      />
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfile}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              transparent
+              white
+              title="Edit Profile"
               navigation={navigation}
               scene={scene}
             />
@@ -233,18 +315,23 @@ function StoreStack(props) {
 
 function AppStack(props) {
   const { isAuthenticated } = useUserContext();
+  const routeName = getFocusedRouteNameFromRoute(props.route) ?? 'Home';
 
   const renderAccount = () => {
-    if (isAuthenticated) {
-      return <Drawer.Screen name="Profile" component={ProfileStack} />
+    try {
+      if (isAuthenticated) {
+        return <Drawer.Screen name="Profile" component={ProfileStack} />
+      }
+      return <Drawer.Screen name="Account" component={AccountStack} />
+    } catch (error) {
+      console.log('AppStack - renderAccount', error)
     }
-    return <Drawer.Screen name="Account" component={AccountStack} />
   }
 
   return (
     <Drawer.Navigator
       style={{ flex: 1 }}
-      drawerContent={props => <CustomDrawerContent {...props} />}
+      drawerContent={props => <CustomDrawerContent routeName={routeName} {...props} />}
       drawerStyle={{
         backgroundColor: nowTheme.COLORS.PRIMARY,
         width: width * 0.8
@@ -275,6 +362,7 @@ function AppStack(props) {
       {/* <Drawer.Screen name="Components" component={ComponentsStack} /> */}
       {renderAccount()}
       <Drawer.Screen name="Stores" component={StoresStack} />
+      <Drawer.Screen name="TrackOrder" component={OrderStack} />
       <Drawer.Screen name="Articles" component={ArticlesStack} />
       <Drawer.Screen name="Store" component={StoreStack} />
       <Drawer.Screen name="Settings" component={SettingsStack} />

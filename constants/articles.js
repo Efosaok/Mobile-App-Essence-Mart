@@ -1,8 +1,13 @@
 export default [
   {
-    title: 'Society has put up so many boundaries',
+    title: 'Society boundaries',
+    subtitle: 'Society sub',
+    // description: 'Society desc',
+    // body: 'Society body',
+    // cta: 'Society Cta',
     image: require("../assets/imgs/project13.jpg"),
     cta: 'View article',
+    ctaRight: true,
     horizontal: true
   },
   {

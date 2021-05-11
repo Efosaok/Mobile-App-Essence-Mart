@@ -11,6 +11,7 @@ export const initialState = {
   enlistHide: false,
   partners: [],
   user: null,
+  hasUserUpdate: false,
   isLoggedIn: false
 };
 
@@ -28,6 +29,14 @@ const reducer = (state, action) => {
         isLoggedIn: !!action.payload.user,
         partners: action.data.partners || [],
         isAuthenticated: action.payload.user ? true : false
+      };
+    }
+
+    case 'UPDATE_USER': {
+      return {
+        ...state,
+        user: {...state.user, ...action.payload.user },
+        hasUserUpdate: true
       };
     }
 
@@ -76,6 +85,13 @@ const useUser = () => {
     })
   };
 
+  const updateUser = (user) => {
+    dispatch({
+      type: 'UPDATE_USER',
+      payload: { user },
+    })
+  };
+
   const setPartners = (partners) => {
     dispatch({
       type: 'SET_PARTNERS',
@@ -84,16 +100,20 @@ const useUser = () => {
   };
 
   const logoutSuccess = () => {
-    return firebase.auth().signOut().then(() => {
-      dispatch({
-        type: 'LOGOUT_SUCCESSFUL',
+    try {
+      return firebase.auth().signOut().then(() => {
+        dispatch({
+          type: 'LOGOUT_SUCCESSFUL',
+        })
       })
-    })
-    .catch(function(error) {
-      console.log('There has been a problem with your fetch operation: ' + error.message);
-       // ADD THIS THROW error
-      // throw error;
-    })
+      .catch(function(error) {
+        console.log('There has been a problem with your fetch operation: ' + error.message);
+        // ADD THIS THROW error
+        // throw error;
+      })
+    } catch (error) {
+      console.log('logoutSuccess error', error)
+    }
   };
 
   const setEnlistHide = (enlistHide) => {
@@ -113,6 +133,7 @@ const useUser = () => {
     isLoggedIn,
     // methods
     setUser,
+    updateUser,
     setPartners,
     logoutSuccess,
     setEnlistHide

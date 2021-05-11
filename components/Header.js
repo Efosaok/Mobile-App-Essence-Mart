@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { withNavigation } from '@react-navigation/compat';
 import { TouchableOpacity, StyleSheet, Platform, Dimensions, Keyboard } from 'react-native';
 import { Button, Block, NavBar, Text, theme, Button as GaButton } from 'galio-framework';
@@ -7,6 +7,14 @@ import Icon from './Icon';
 import Input from './Input';
 import Tabs from './Tabs';
 import nowTheme from '../constants/Theme';
+import firebase from '../shared/firebase'
+import { updateUser } from '../shared/methods/Users';
+import { useProfileContext } from '../context/ProfileContext';
+import { useUserContext } from '../context/UserContext';
+import { useCartContext } from '../context/CartContext';
+import { createOrder } from '../shared/methods/Orders';
+import { useStoreListContext } from '../context/StoreListContext';
+import Loader from './Loader';
 
 const { height, width } = Dimensions.get('window');
 const iPhoneX = () =>
@@ -27,25 +35,50 @@ const BellButton = ({ isWhite, style, navigation }) => (
   </TouchableOpacity>
 );
 
-const BasketButton = ({ isWhite, style, navigation }) => (
+const BasketButton = ({ isWhite, style, navigation, name, size, onPress }) => (
   <TouchableOpacity style={[styles.button, style]} onPress={() => {}}>
     <Icon
       family="NowExtra"
-      size={16}
-      name="basket2x"
-      onPress={() => navigation.navigate('Shopping', { screen: 'Cart' })}
+      size={size || 16}
+      name={name || "basket2x"}
+      onPress={() => onPress ? onPress() : navigation.navigate('Shopping', { screen: 'Cart' })}
       color={nowTheme.COLORS[isWhite ? 'WHITE' : 'ICON']}
     />
   </TouchableOpacity>
 );
 
-
+const Quantity = (item) => Number(item.quantity || 1)
+const Price = (item) => Number(item.price || 0);
 
 const Header = (props) => {
+  const { profile, setProfileError, setProfileLoading, setLoadingMessage } = useProfileContext();
+  const { user, updateUser: updateUserState, isAuthenticated } = useUserContext();
+  const { cart, clearCart } = useCartContext()
+  const [isLoading, setLoading] = useState(false)
+  const { store } = useStoreListContext()
+  const items = cart && cart.map((item) => Quantity(item) * Price(item));
+  const quantities = items && items.reduce((prev, item) => Quantity(item) + prev, 0);
+  const { scene } = props;
+  const params = scene && scene.route && scene.route.params
+  const uid = params && params.uid;
+  const isDraft = params && params.isDraft;
+
   const handleLeftPress = () => {
     const { back, navigation } = props;
     return back ? navigation.goBack() : navigation.openDrawer();
   };
+
+  const saveCart = () => {
+    setLoading(true);
+    createOrder(cart, user, store, quantities, 'DRAFT')
+    .then((snapshot) => {
+      console.log('snapshot.id', snapshot.id)
+      clearCart();
+      setLoading(false);
+      props.navigation.navigate('TrackOrder', { screen: 'Order', params: { id: 'Draft' } })
+    })
+  }
+
   const renderRight = () => {
     const { white, title, navigation } = props;
     
@@ -65,8 +98,8 @@ const Header = (props) => {
         ];
       case 'Deals':
         return [
-          <BellButton key="chat-categories" navigation={navigation} />,
-          <BasketButton key="basket-categories" navigation={navigation} />
+          <BellButton key="chat-deals" navigation={navigation} />,
+          <BasketButton key="basket-deals" navigation={navigation} />
         ];
       case 'Stores':
         return [
@@ -75,14 +108,75 @@ const Header = (props) => {
         ];
       case 'Category':
         return [
-          <BellButton key="chat-deals" navigation={navigation} isWhite={white} />,
-          <BasketButton key="basket-deals" navigation={navigation} isWhite={white} />
+          <BellButton key="chat-category" navigation={navigation} isWhite={white} />,
+          <BasketButton key="basket-category" navigation={navigation} isWhite={white} />
         ];
       case 'Profile':
         return [
           <BellButton key="chat-profile" navigation={navigation} isWhite={white} />,
           <BasketButton key="basket-deals" navigation={navigation} isWhite={white} />
         ];
+      case 'Shopping Cart': {
+        const hasCart = cart && cart.length
+        const existed = (isDraft || uid)
+        return [
+          // <BellButton key="chat-profile" navigation={navigation} isWhite={white} />,
+          (!existed && hasCart && isAuthenticated) && <Text onPress={saveCart} bold color={nowTheme.COLORS.PRIMARY}>Save</Text>
+        ];
+      }
+      case 'Edit Profile': {
+        const updateProfile = () => {
+          try {
+            const { photoURL, displayName, phoneNumber } = profile
+            if(profile.displayName === '') {
+              setProfileError('Enter details to login!')
+            } else {
+              setProfileLoading(true)
+              setLoadingMessage('Updating profile')
+              firebase
+              .auth()
+              .currentUser
+              .updateProfile({ photoURL, displayName, phoneNumber })
+              .then((res) => {
+                setLoadingMessage('Updating profile..')
+                updateUser(profile, user)
+                .then((res) => {
+                  updateUserState({ photoURL, displayName, phoneNumber })
+                  navigation.navigate('Profile', { screen: 'ViewProfile' })
+                  setProfileError('')
+                  setLoadingMessage('')
+                  setProfileLoading(false)
+                })
+                .catch((err) => {
+                  console.log('updateUser - error', err)
+                  setLoadingMessage('')
+                  setProfileError(error.message || error)
+                  setProfileLoading(false)
+                })
+              })
+              .catch(error => {
+                console.log('error', error)
+                setProfileError(error.message || error)
+                setProfileLoading(false)
+              })
+            }
+          } catch (error) {
+            setProfileError(error.message || error)
+          }
+        }
+
+        return [
+          // <BellButton key="chat-profile" navigation={navigation} isWhite={white} />,
+          <BasketButton
+            onPress={updateProfile}
+            key="basket-deals"
+            size={30}
+            name="check-22x"
+            navigation={navigation}
+            isWhite={white}
+          />
+        ];
+      }
       case 'Account':
         return [
           <BellButton key="chat-profile" navigation={navigation} />,
@@ -107,6 +201,32 @@ const Header = (props) => {
         break;
     }
   };
+
+
+  const renderLeft = () => {
+    const { white, title, navigation } = props;
+
+    if (title === 'Edit Profile') {
+      return (
+        <Icon
+          name="simple-remove2x"
+          family="NowExtra"
+          size={30}
+          onPress={() => navigation.navigate('Profile', { screen: 'ViewProfile' })}
+          color={iconColor || (white ? nowTheme.COLORS.WHITE : nowTheme.COLORS.ICON)}
+        />
+      );
+    }
+
+    return (
+      <Icon
+        name={back ? 'minimal-left2x' : 'align-left-22x'}
+        family="NowExtra"
+        size={16}
+        onPress={handleLeftPress}
+        color={iconColor || (white ? nowTheme.COLORS.WHITE : nowTheme.COLORS.ICON)}
+      />)
+  }
   const renderSearch = () => {
     const { navigation } = props;
     return (
@@ -178,14 +298,13 @@ const Header = (props) => {
 
   const renderTabs = () => {
     const { tabs, tabIndex, navigation } = props;
-    const defaultTab = tabs && tabs[0] && tabs[0].id;
 
     if (!tabs) return null;
 
     return (
       <Tabs
         data={tabs || []}
-        initialIndex={tabIndex || defaultTab}
+        initialIndex={tabIndex}
         onChange={id => navigation.setParams({ tabId: id })}
       />
     );
@@ -219,16 +338,17 @@ const Header = (props) => {
   const noShadow = ['Search', 'Categories', 'Deals', 'Pro', 'Profile'].includes(title);
   const headerStyles = [
     !noShadow ? styles.shadow : null,
-    transparent ? { backgroundColor: 'rgba(0,0,0,0)' } : null
+    transparent ? { backgroundColor: 'rgba(0,0,0,0)' } : null,
+    { paddingTop: 20 }
   ];
 
   function trunc(text) {
     const size = Math.floor(width / 16) + 4
-    console.log('size', size, width)
     return text.length > size ? `${text.substr(0, size)}...` : text;
   }
   
   const navbarStyles = [styles.navbar, bgColor && { backgroundColor: bgColor }];
+  const adjustProfileSpacing = title === 'Edit Profile' && { width: '90%' }
 
   return (
     <Block style={headerStyles}>
@@ -240,23 +360,17 @@ const Header = (props) => {
         transparent={transparent}
         right={renderRight()}
         rightStyle={{ alignItems: 'center' }}
-        left={
-          <Icon
-            name={back ? 'minimal-left2x' : 'align-left-22x'}
-            family="NowExtra"
-            size={16}
-            onPress={handleLeftPress}
-            color={iconColor || (white ? nowTheme.COLORS.WHITE : nowTheme.COLORS.ICON)}
-          />
-        }
+        left={renderLeft()}
         leftStyle={{ paddingVertical: 12, flex: 0.2 }}
         titleStyle={[
           styles.title,
+          adjustProfileSpacing,
           { color: nowTheme.COLORS[white ? 'WHITE' : 'HEADER'] },
           titleColor && { color: titleColor }
         ]}
         {...rest}
       />
+      <Loader isLoading={isLoading} />
       {renderHeader()}
     </Block>
   );
