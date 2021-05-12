@@ -33,9 +33,18 @@ const Ongoing = (props) => {
   const [ongoing, setOrders] = useState([])
   const { navigation } = props;
 
+  const clearCache = (status) => {
+    cacheData.splice(0, cacheData.length)
+    // document count;
+    docCount = 0;
+    setOrderCount(docCount, status)
+    setOrders([ ...cacheData, ...ongoing])
+    return
+  }
+
   useEffect(() => {
-    if (!isAuthenticated) return
     const status = 'PENDING';
+    if (!isAuthenticated) return clearCache(status);
     try {
       setLoading(true)
       getOrders(user.uid, status)

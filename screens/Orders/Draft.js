@@ -34,9 +34,18 @@ const DRAFT = (props) => {
   const [draft, setOrders] = useState([])
   const { navigation } = props;
 
+  const clearCache = (status) => {
+    cacheData.splice(0, cacheData.length)
+    // document count;
+    docCount = 0;
+    setOrderCount(docCount, status)
+    setOrders([ ...cacheData, ...draft])
+    return
+  }
+
   useEffect(() => {
-    if (!isAuthenticated) return
     const status = 'DRAFT';
+    if (!isAuthenticated) return clearCache(status);
     try {
       setLoading(true)
       getOrders(user.uid, status)
