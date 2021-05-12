@@ -33,8 +33,17 @@ const History = (props) => {
   const [completedOrders, setOrders] = useState([])
   const { navigation } = props;
 
+  const clearCache = () => {
+    cacheData.splice(0, cacheData.length)
+    // document count;
+    docCount = 0;
+    setOrderCount(docCount)
+    setOrders([ ...cacheData, ...completedOrders])
+    return
+  }
+
   useEffect(() => {
-    if (!isAuthenticated) return
+    if (!isAuthenticated) return clearCache();
     try {
       setLoading(true)
       getOrders(user.uid)
