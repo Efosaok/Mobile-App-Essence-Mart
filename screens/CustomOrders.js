@@ -58,6 +58,7 @@ const CustomOrders = (props) => {
   const isDraft = order && order.status === 'DRAFT';
   const cta = 'Order'
   const cta2 = 'Cancel';
+  const mainCta = `${order && order.cart ? 'CONTINUE' : 'START' } YOUR CUSTOM ORDER HERE`
   const uid = order && order.uid;
   const items = order && order.cart && order.cart.map((item) => Quantity(item) * IndexedPrice(item));
   const total = items && items.reduce((prev, amt) => Number(amt) + prev, 0);
@@ -165,7 +166,7 @@ const CustomOrders = (props) => {
           </Text>
         </Block>
       <Button size="large" color="info" round onPress={() => navigation.openDrawer()}>
-        START YOUR CUSTOM ORDER HERE
+        {mainCta}
       </Button>
 
         {/* <Block row style={styles.addressSection}>
