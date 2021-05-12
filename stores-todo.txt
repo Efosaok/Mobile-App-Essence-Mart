@@ -4,3 +4,6 @@ DOLCE AND GABANNA as different url
     newCartLink => https://us.dolcegabbana.com/on/demandware.store/Sites-dolcegabbana_us-Site/en/Cart-Show
     Description: 
       Write Function / script that makes the checkout url dynamic
+
+TODO:
+  Clear Tracking Order(Ongoing, In Progress, Draft, and Order counts) information on Logout, So it doesn't duplicate - done
