@@ -29,6 +29,7 @@ import { nowTheme, tabs } from "../constants";
 import { useUserContext } from '../context/UserContext';
 import { useCartContext } from '../context/CartContext';
 import Dashboard from '../screens/Dashboard';
+import CustomOrders from '../screens/CustomOrders';
 
 const { width } = Dimensions.get("screen");
 
@@ -136,6 +137,29 @@ function OrderStack(props) {
           headerTitleStyle: { display: 'none' },
           headerBackTitleStyle:{ color: nowTheme.COLORS.PRIMARY, display: 'none' },
           headerTintColor: nowTheme.COLORS.PRIMARY,
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function OrdersStack(props) {
+  return (
+    <Stack.Navigator initialRouteName="Cart" mode="card" headerMode="screen">
+      <Stack.Screen
+        name="CustomOrders"
+        component={CustomOrders}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              // transparent
+              title="Custom Orders"
+              navigation={navigation}
+              hideTitle
+              scene={scene}
+            />
+          ),
+          headerTransparent: true
         }}
       />
     </Stack.Navigator>
@@ -363,6 +387,7 @@ function AppStack(props) {
       {renderAccount()}
       <Drawer.Screen name="Stores" component={StoresStack} />
       <Drawer.Screen name="TrackOrder" component={OrderStack} />
+      <Drawer.Screen name="Orders" component={OrdersStack} />
       <Drawer.Screen name="Articles" component={ArticlesStack} />
       <Drawer.Screen name="Store" component={StoreStack} />
       <Drawer.Screen name="Settings" component={SettingsStack} />

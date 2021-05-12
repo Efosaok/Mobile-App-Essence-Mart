@@ -16,7 +16,7 @@ const thumbMeasure = (width - 48 - 32) / 3;
 
 const Profile = ({ navigation }) => {
   const { user, setUser } = useUserContext();
-  const { histories } = useCartContext()
+  const { completed, ongoing, draft } = useCartContext()
 
   const sendEmailVerification = () => {
     try {
@@ -115,7 +115,7 @@ const Profile = ({ navigation }) => {
                         color="white"
                         style={{ marginBottom: 4, fontFamily: 'montserrat-bold' }}
                       >
-                        --
+                        {completed || '--'}
                       </Text>
                       <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="white">
                         Delivered
@@ -128,7 +128,7 @@ const Profile = ({ navigation }) => {
                         size={18}
                         style={{ marginBottom: 4, fontFamily: 'montserrat-bold' }}
                       >
-                        --
+                        {ongoing || '--'}
                       </Text>
                       <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="white">
                         In Progress
@@ -141,10 +141,10 @@ const Profile = ({ navigation }) => {
                         size={18}
                         style={{ marginBottom: 4, fontFamily: 'montserrat-bold' }}
                       >
-                        --
+                        {draft || '--'}
                       </Text>
                       <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="white">
-                        Arrived
+                        {/* Arrived */}Draft
                       </Text>
                     </Block>
 

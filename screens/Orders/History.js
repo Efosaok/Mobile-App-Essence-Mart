@@ -28,7 +28,7 @@ const thumbMeasure = (width - (width / 5));
 
 const History = (props) => {
   const { user, isAuthenticated } = useUserContext();
-  const { setOrder } = useCartContext()
+  const { setOrder, setOrderCount } = useCartContext()
   const [isLoading, setLoading] = useState(false)
   const [completedOrders, setOrders] = useState([])
   const { navigation } = props;
@@ -51,7 +51,7 @@ const History = (props) => {
             console.log('Modified change.doc.id', change.doc.id)
             const item = { ...change.doc.data(), id: change.doc.id }
             for (var i = 0; i < cacheData.length; i++) {
-              if (cacheData[i].uid === item.id) return cacheData[i] = item;
+              if (cacheData[i].id === item.id) return cacheData[i] = item;
             }
           }
           if (change.type === 'removed') {
@@ -59,12 +59,13 @@ const History = (props) => {
             docCount -= 1;
             const item = { ...change.doc.data(), id: change.doc.id }
             for (var i = 0; i < cacheData.length; i++) {
-              if (cacheData[i].uid === item.id) return cacheData.splice(i, 1);
+              if (cacheData[i].id === item.id) return cacheData.splice(i, 1);
             }
           }
         });
         mounted = true
         setLoading(false)
+        setOrderCount(docCount)
         setOrders([ ...cacheData, ...completedOrders])
       }, (error) => {
         setLoading(false)

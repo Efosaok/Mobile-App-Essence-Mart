@@ -211,8 +211,10 @@ const DrawerItem = (props) => {
         Linking.openURL(
           "https://demos.creative-tim.com/now-ui-pro-react-native/docs/"
         ).catch(err => console.error("An error occurred", err))
-      } else if (to) {
+      } else if (typeof to === 'string') {
         navigation.navigate(to)
+      } else if (to !== null && typeof to === 'object') {
+        navigation.navigate(...to)
       }
     } catch (error) {
       console.log('drawer', error)

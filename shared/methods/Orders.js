@@ -7,7 +7,6 @@ const db = firebase.firestore();
 
 export const createOrder = (cart, user, store, quantities, status) => { 
   const { title, cartLink, caption, link, paymentId } = store;
-  // const uid = generateId()
   return db.collection('orders')
   .add({
     cart,
@@ -56,14 +55,12 @@ export const getOrders = (userId, status) => {
 export const getOrder = (orderId) => { 
   return db.collection(`orders/${orderId}`)
   .get()
-  // .orderBy("email", "asc")
 }
 
 export const removeOrder = (orderId) => { 
   return db.collection('orders')
   .doc(orderId)
   .delete()
-  // .orderBy("email", "asc")
 }
 
 /**

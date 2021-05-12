@@ -109,6 +109,7 @@ function Form ({
                             style={styles.inputs}
                             editable={!isEditProfile}
                             value={inputData.email}
+                            autoCapitalize="none"
                             onChangeText={(val) => updateInputVal(val, 'email')}
                             iconContent={
                               <Icon

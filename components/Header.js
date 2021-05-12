@@ -202,6 +202,13 @@ const Header = (props) => {
     }
   };
 
+  const onLeftPress = () => {
+    const { title, navigation } = props;
+    if (title === 'Edit Profile') {
+      return navigation.navigate('Profile', { screen: 'ViewProfile' });
+    }
+    return handleLeftPress();
+  }
 
   const renderLeft = () => {
     const { white, title, navigation } = props;
@@ -332,10 +339,11 @@ const Header = (props) => {
     iconColor,
     titleColor,
     navigation,
+    hideTitle,
     ...rest
   } = props;
 
-  const noShadow = ['Search', 'Categories', 'Deals', 'Pro', 'Profile'].includes(title);
+  const noShadow = ['Search', 'Categories', 'Deals', 'Pro', 'Profile', 'Custom Orders'].includes(title);
   const headerStyles = [
     !noShadow ? styles.shadow : null,
     transparent ? { backgroundColor: 'rgba(0,0,0,0)' } : null,
@@ -343,10 +351,12 @@ const Header = (props) => {
   ];
 
   function trunc(text) {
-    const size = Math.floor(width / 16) + 4
-    return text.length > size ? `${text.substr(0, size)}...` : text;
+    if (text) {
+      const size = Math.floor(width / 16) + 4
+      return text.length > size ? `${text.substr(0, size)}...` : text;
+    }
   }
-  
+
   const navbarStyles = [styles.navbar, bgColor && { backgroundColor: bgColor }];
   const adjustProfileSpacing = title === 'Edit Profile' && { width: '90%' }
 
@@ -354,7 +364,7 @@ const Header = (props) => {
     <Block style={headerStyles}>
       <NavBar
         back={false}
-        title={trunc(title)}
+        title={!hideTitle && trunc(title)}
         numberOfLines={1}
         style={navbarStyles}
         transparent={transparent}
@@ -391,7 +401,8 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     paddingBottom: theme.SIZES.BASE * 1.5,
     paddingTop: iPhoneX() ? theme.SIZES.BASE * 4 : theme.SIZES.BASE,
-    zIndex: 5
+    zIndex: 5,
+    justifyContent: 'space-between'
   },
   shadow: {
     backgroundColor: theme.COLORS.WHITE,

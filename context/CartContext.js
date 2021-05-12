@@ -15,7 +15,7 @@ const initialState = {
   cart: null,
   payment: null,
   store: null,
-  histories: null,
+  completed: null,
   ongoing: null,
   draft: null,
   order: null,
@@ -39,7 +39,7 @@ function reducer (state, action) {
         }
       }
 
-    case 'UPDATE_HISTORY':
+    case 'UPDATE_ORDER_COUNTS':
       return {
         ...state,
         ...data
@@ -124,23 +124,23 @@ const useCart = () => {
     })
   }
 
-  const setOrderCount = (histories, status) => {
+  const setOrderCount = (orderCounts, status) => {
     let data
     switch (status) {
       case 'PENDING':
-        data = { ongoing: histories }
+        data = { ongoing: orderCounts }
         break;
 
       case 'DRAFT':
-        data = { draft: histories }
+        data = { draft: orderCounts }
         break;
     
       default:
-        data = { histories }
+        data = { completed: orderCounts }
         break;
     }
     dispatch({
-      type: 'UPDATE_HISTORY',
+      type: 'UPDATE_ORDER_COUNTS',
       data
     })
   }
@@ -194,7 +194,7 @@ const useCart = () => {
     })
   }
 
-  const { cart, payment, store, histories, ongoing, draft, order } = state
+  const { cart, payment, store, completed, ongoing, draft, order } = state
 
   return {
     addToCart,
@@ -210,7 +210,7 @@ const useCart = () => {
     store,
     cart,
     payment,
-    histories,
+    completed,
     ongoing,
     draft,
     order

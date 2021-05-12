@@ -28,8 +28,7 @@ const thumbMeasure = (width - (width / 5));
 
 const Ongoing = (props) => {
   const { user, isAuthenticated } = useUserContext();
-  // const { setOrders, ongoing, setOrder } = useCartContext()
-  const { setOrder } = useCartContext()
+  const { setOrder, setOrderCount } = useCartContext()
   const [isLoading, setLoading] = useState(false)
   const [ongoing, setOrders] = useState([])
   const { navigation } = props;
@@ -53,7 +52,7 @@ const Ongoing = (props) => {
             console.log('Modified change.doc.id', change.doc.id)
             const item = { ...change.doc.data(), id: change.doc.id }
             for (var i = 0; i < cacheData.length; i++) {
-              if (cacheData[i].uid === item.id) return cacheData[i] = item;
+              if (cacheData[i].id === item.id) return cacheData[i] = item;
             }
           }
           if (change.type === 'removed') {
@@ -61,12 +60,13 @@ const Ongoing = (props) => {
             docCount -= 1;
             const item = { ...change.doc.data(), id: change.doc.id }
             for (var i = 0; i < cacheData.length; i++) {
-              if (cacheData[i].uid === item.id) return cacheData.splice(i, 1);
+              if (cacheData[i].id === item.id) return cacheData.splice(i, 1);
             }
           }
         });
         mounted = true
         setLoading(false)
+        setOrderCount(docCount, status)
         setOrders([ ...cacheData, ...ongoing])
       }, (error) => {
         setLoading(false)
@@ -127,7 +127,7 @@ const Ongoing = (props) => {
           item={getItem(cartHistory)}
           horizontal
           onPress={() => getDetails(cartHistory, getItem(cartHistory))}
-          key={cartHistory.createdAt}
+          key={cartHistory.id}
           style={{ maxHeight: 75, minHeight: 75 }}
           imgContainerFlex={0.34}
         />))}

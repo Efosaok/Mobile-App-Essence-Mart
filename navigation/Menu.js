@@ -31,14 +31,19 @@ function CustomDrawerContent({
   const [screens, setScreens] = useState([
     { title: "Stores", to: 'Home' },
     { title: "Login / Register", to: "Account" },
-    { title: "Custom Orders", to: "CustomOrders" },
+    { title: "Custom Orders", to: ['Orders', { screen: 'CustomOrders' }] },
     { title: "Track Orders", to: 'TrackOrder' },
     { title: "Notification" },
-    // { title: "Components", to: 'Components' },
-    // { title: "Articles", to: 'Articles' },
-    // { title: "Profile", to: 'Profile' },
-    // { title: "Account", to: 'Account' },
   ])
+
+  const compareRoute = (item) => {
+    if (!item || typeof item === 'string' ) {
+      return routeName === item
+    } else if (typeof item.to !== 'string' && typeof item.to !== 'undefined') {
+      return routeName === item.to[0] || routeName === item.title
+    }
+    return routeName === item.to || routeName === item.title;
+  }
 
   useEffect(() => {
     try {
@@ -82,7 +87,7 @@ function CustomDrawerContent({
                 to={item.to}
                 key={index}
                 navigation={navigation}
-                focused={(routeName === item.to || routeName === item.title) ? true : false}
+                focused={compareRoute(item)}
               />
             );
           })}
@@ -97,9 +102,9 @@ function CustomDrawerContent({
             MORE{/* DOCUMENTATION */}
           </Text>
         </Block>
-        <DrawerCustomItem title="Settings" navigation={navigation}/>
-        <DrawerCustomItem title="Call Customer Care" navigation={navigation}/>
-        <DrawerCustomItem title="Contact US / App Help" navigation={navigation}/>
+        <DrawerCustomItem focused={compareRoute('Settings')} title="Settings" navigation={navigation}/>
+        <DrawerCustomItem focused={compareRoute("Call Customer Care")} title="Call Customer Care" navigation={navigation}/>
+        <DrawerCustomItem focused={compareRoute("Contact US / App Help")} title="Contact US / App Help" navigation={navigation}/>
         {isAuthenticated && <DrawerCustomItem title="LOGOUT" navigation={navigation}/>}
         </ScrollView>
       </Block>
