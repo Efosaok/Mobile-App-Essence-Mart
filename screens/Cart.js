@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet, Dimensions, Alert } from 'react-native';
 import { Block, theme } from "galio-framework";
+import axios from "axios";
 import CartComponent from "../components/cart";
 import Loader from '../components/Loader';
-import axios from "axios";
 import { useCartContext } from '../context/CartContext';
 // import { getCurrency as fetchCurrency } from '../shared/methods/Currencies';
 import { currencies } from '../constants/currencies';
@@ -11,7 +11,7 @@ import { useUserContext } from '../context/UserContext';
 
 const { width } = Dimensions.get('screen');
 
-export default function Cart({ navigation }) {
+export default function Cart() {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const { cart, initailizeCartPayment } = useCartContext()
@@ -25,12 +25,9 @@ export default function Cart({ navigation }) {
   // TODO: total amount in nigeria currency
   // TODO: Exchange Rate
 
-  const quantites = items && items.reduce((prev, item) => Quantity(item) + prev, 0);
-  const showScreen = () => {
-    errorMessage && Alert.alert(null, errorMessage, [
+  const showScreen = () => errorMessage && Alert.alert(null, errorMessage, [
       { text: "OK", onPress: () => setErrorMessage("") }
     ])
-  }
 
 
   const getCurrencySymbol = (currency, setDefault) => {
@@ -66,6 +63,7 @@ export default function Cart({ navigation }) {
       const from = currencyType() || 'EUR';
       const amountInNaira = currencies[from] * total;
       const FloatTotal = parseFloat(amountInNaira).toFixed(2)
+      // eslint-disable-next-line radix
       const AmountInKobo = parseInt(String(FloatTotal).split('.').join(''))
 
       const testEmail = "customer@email.com"

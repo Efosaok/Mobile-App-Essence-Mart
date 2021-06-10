@@ -1,28 +1,56 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Dimensions, ScrollView, Image, ImageBackground, Platform, Alert } from 'react-native';
-import { Block, Text, theme, Button as GaButton } from 'galio-framework';
+import React, {  } from 'react';
+import { StyleSheet, Dimensions, ScrollView, Image, ImageBackground, Alert } from 'react-native';
+import { Block, Text, theme } from 'galio-framework';
+import { useNavigation } from '@react-navigation/native';
 
-import { Button, Input } from '../components';
+import firebase from 'firebase';
+import { Button } from '../components';
 import { Images, nowTheme } from '../constants';
 import { HeaderHeight } from '../constants/utils';
 import { useUserContext } from '../context/UserContext';
-import firebase from 'firebase';
-import { getOrders } from '../shared/methods/Orders';
-import { useCartContext } from '../context/CartContext';
 
 const { width, height } = Dimensions.get('screen');
 
 const thumbMeasure = (width - 48 - 32) / 3;
+const profileEditStyle = { position: 'absolute', width, top: height * 0.6 - 26, zIndex: 99 }
+const verifyBtnStyle = { height: 44, marginHorizontal: 5, elevation: 0 }
+const profileImageStyle = { position: 'absolute', width, zIndex: 5, paddingHorizontal: 20 }
+const setHeight = (h = 0.15) => ({ top: height * h })
+const orderStatusBadgeStyle = { fontFamily: 'montserrat-regular' }
+const orderStatusStyle = { marginBottom: 4, fontFamily: 'montserrat-bold' }
+const editProfileBtnStyle = { width: 114, height: 44, marginHorizontal: 5, elevation: 0 }
+const btnTextStyle = { fontSize: 16 }
+const verifyBadgeStyle = {
+  marginTop: 5,
+  fontFamily: 'montserrat-bold',
+  lineHeight: 20,
+  fontWeight: 'bold',
+  fontSize: 18,
+  opacity: .8
+}
+const displayNameStyle = {
+  fontFamily: 'montserrat-bold',
+  marginBottom: theme.SIZES.BASE / 2,
+  fontWeight: '900',
+  fontSize: 26
+}
+const profileStyle = {
+  flex: 1,
+  flexDirection: 'column',
+  justifyContent: 'space-between',
+}
 
-const Profile = ({ navigation }) => {
+const Profile = () => {
   const { user, setUser } = useUserContext();
-  const { histories } = useCartContext()
+  const navigation = useNavigation();
+  const { navigate } = navigation
+  const gotoEditProfile = () => navigate('Profile', { screen: 'EditProfile' })
 
   const sendEmailVerification = () => {
     try {
-      const currentUser = firebase.auth().currentUser
+      const {currentUser} = firebase.auth()
       currentUser.sendEmailVerification()
-      .then(function() {
+      .then(() => {
         Alert.alert(null, 'Verification email sent.', [
           { text: "OK", onPress: () => console.log("OK Pressed") }
         ])
@@ -33,7 +61,7 @@ const Profile = ({ navigation }) => {
         }, 30000);
         // Verification email sent.
       })
-      .catch(function(error) {
+      .catch((error) => {
         // Error occurred. Inspect error.code.
         Alert.alert(null, error.message || error, [
           { text: "OK", onPress: () => console.log("OK Pressed") }
@@ -50,8 +78,8 @@ const Profile = ({ navigation }) => {
         <Button
           onPress={sendEmailVerification}
           color="SECONDARY"
-          style={{ height: 44, marginHorizontal: 5, elevation: 0 }}
-          textStyle={{ fontSize: 16 }}
+          style={verifyBtnStyle}
+          textStyle={btnTextStyle}
           round
         >
           Verify my profile
@@ -61,11 +89,7 @@ const Profile = ({ navigation }) => {
   }
 
   return (
-    <Block style={{
-      flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-    }} >
+    <Block style={profileStyle} >
       <Block flex={0.6} >
         <ImageBackground
           source={Images.ProfileBackground}
@@ -73,19 +97,14 @@ const Profile = ({ navigation }) => {
           imageStyle={styles.profileBackground}
         >
           <Block flex style={styles.profileCard}>
-            <Block style={{ position: 'absolute', width: width, zIndex: 5, paddingHorizontal: 20 }}>
-              <Block middle style={{ top: height * 0.15 }}>
+            <Block style={profileImageStyle}>
+              <Block middle style={setHeight()}>
                 <Image source={user.photoURL ? { uri: user.photoURL } : Images.ProfilePicture} style={styles.avatar} />
               </Block>
-              <Block style={{ top: height * 0.2 }}>
+              <Block style={setHeight(0.2)}>
                 <Block middle >
                   <Text
-                    style={{
-                      fontFamily: 'montserrat-bold',
-                      marginBottom: theme.SIZES.BASE / 2,
-                      fontWeight: '900',
-                      fontSize: 26
-                    }}
+                    style={displayNameStyle}
                     color='#ffffff'
                     >
                     {(user && user.displayName) || "Teni Makanaki"}
@@ -94,14 +113,7 @@ const Profile = ({ navigation }) => {
                   <Text
                     size={16}
                     color="white"
-                    style={{
-                      marginTop: 5,
-                      fontFamily: 'montserrat-bold',
-                      lineHeight: 20,
-                      fontWeight: 'bold',
-                      fontSize: 18,
-                      opacity: .8
-                    }}
+                    style={verifyBadgeStyle}
                   >
                     {user && user.emailVerified && "Verified" }
                   </Text>
@@ -113,11 +125,11 @@ const Profile = ({ navigation }) => {
                       <Text
                         size={18}
                         color="white"
-                        style={{ marginBottom: 4, fontFamily: 'montserrat-bold' }}
+                        style={orderStatusStyle}
                       >
                         --
                       </Text>
-                      <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="white">
+                      <Text style={orderStatusBadgeStyle} size={14} color="white">
                         Delivered
                       </Text>
                     </Block>
@@ -126,11 +138,11 @@ const Profile = ({ navigation }) => {
                       <Text
                         color="white"
                         size={18}
-                        style={{ marginBottom: 4, fontFamily: 'montserrat-bold' }}
+                        style={orderStatusStyle}
                       >
                         --
                       </Text>
-                      <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="white">
+                      <Text style={orderStatusBadgeStyle} size={14} color="white">
                         In Progress
                         </Text>
                     </Block>
@@ -139,11 +151,11 @@ const Profile = ({ navigation }) => {
                       <Text
                         color="white"
                         size={18}
-                        style={{ marginBottom: 4, fontFamily: 'montserrat-bold' }}
+                        style={orderStatusStyle}
                       >
                         --
                       </Text>
-                      <Text style={{ fontFamily: 'montserrat-regular' }} size={14} color="white">
+                      <Text style={orderStatusBadgeStyle} size={14} color="white">
                         Arrived
                       </Text>
                     </Block>
@@ -158,12 +170,12 @@ const Profile = ({ navigation }) => {
             <Block
               middle
               row
-              style={{ position: 'absolute', width: width, top: height * 0.6 - 26, zIndex: 99 }}
+              style={profileEditStyle}
             >
               <Button
-                onPress={() => navigation.navigate('Profile', { screen: 'EditProfile' })}
-                style={{ width: 114, height: 44, marginHorizontal: 5, elevation: 0 }}
-                textStyle={{ fontSize: 16 }}
+                onPress={gotoEditProfile}
+                style={editProfileBtnStyle}
+                textStyle={btnTextStyle}
                 round
               >
                 Edit

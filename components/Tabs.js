@@ -65,6 +65,9 @@ export default function Tabs (props) {
 
   const renderItem = (item) => {
     const isActive = state.active === item.id;
+    const getID = () => {
+      selectMenu(item.id)
+    }
 
     const textColor = animatedValue.interpolate({
       inputRange: [0.01, 1],
@@ -86,7 +89,7 @@ export default function Tabs (props) {
             { color: textColor },
             { fontFamily: 'montserrat-regular' },
           ]}
-          onPress={() => selectMenu(item.id)}>
+          onPress={getID}>
           {item.title}
         </Animated.Text>
       </Block>

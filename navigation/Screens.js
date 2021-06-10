@@ -1,50 +1,45 @@
-import React from 'react';
+/* eslint-disable react/jsx-props-no-spreading */
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
+import React, { lazy } from 'react';
 import { Block } from "galio-framework";
-import { Easing, Animated, Dimensions } from "react-native";
+import { Dimensions } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
-// screens
-import Home from '../screens/Home';
-import Profile from '../screens/Profile';
-import EditProfile from '../screens/EditProfile';
-import Register from '../screens/Register';
-import Login from '../screens/Login';
-import Articles from '../screens/Articles';
-import Onboarding from '../screens/Onboarding';
-import Stores from '../screens/Stores';
-import Store from '../screens/Store';
-import CartScreen from '../screens/Cart';
-import Settings from '../screens/Settings';
-import Checkout from '../screens/Checkout';
-import OrderConfirmed from '../screens/Order/OrderConfirmed';
-import OrderTracking from '../screens/Orders';
-import OrderInformation from '../screens/Order/OrderInformation';
 // drawer
 import CustomDrawerContent from "./Menu";
 // header for screens
-import { Header, Icon} from '../components';
-import { nowTheme, tabs } from "../constants";
+import { Header} from '../components';
+import { nowTheme } from "../constants";
 import { useUserContext } from '../context/UserContext';
 import { useCartContext } from '../context/CartContext';
-import Dashboard from '../screens/Dashboard';
+// screens
+import Home from '../screens/Home';
+import Onboarding from '../screens/Onboarding';
+
+const Profile = lazy(() => import('../screens/Profile'));
+const EditProfile = lazy(() => import('../screens/EditProfile'));
+const Register = lazy(() => import('../screens/Register'));
+const Login = lazy(() => import('../screens/Login'));
+const Stores = lazy(() => import('../screens/Stores'));
+const Store = lazy(() => import('../screens/Store'));
+const CartScreen = lazy(() => import('../screens/Cart'));
+const Settings = lazy(() => import('../screens/Settings/Settings'));
+const Checkout = lazy(() => import('../screens/Checkout'));
+const OrderConfirmed = lazy(() => import('../screens/Order/OrderConfirmed'));
+const OrderTracking = lazy(() => import('../screens/Orders'));
+const OrderInformation = lazy(() => import('../screens/Order/OrderInformation'));
+const CustomOrders = lazy(() => import('../screens/CustomOrders/Views'));
+const EditCustomOrders = lazy(() => import('../screens/CustomOrders/Edit'));
+const Notification = lazy(() => import('../screens/Settings/Notification'));
+const Rating = lazy(() => import('../screens/Rating'));
 
 const { width } = Dimensions.get("screen");
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
-
-function ArticlesStack(props) {
-  return (
-    <Stack.Navigator initialRouteName="Articles" mode="card" headerMode="screen">
-      <Stack.Screen name="Articles" component={Articles} options={{
-        header: ({ navigation, scene }) => (<Header title="Articles" navigation={navigation} scene={scene} />),
-        backgroundColor: '#FFFFFF'
-      }} />
-    </Stack.Navigator>
-  );
-}
 
 function CheckoutStack(props) {
   return (
@@ -132,10 +127,75 @@ function OrderStack(props) {
           // ),
           // headerTransparent: true
 
-
           headerTitleStyle: { display: 'none' },
           headerBackTitleStyle:{ color: nowTheme.COLORS.PRIMARY, display: 'none' },
           headerTintColor: nowTheme.COLORS.PRIMARY,
+        }}
+      />
+      <Stack.Screen
+        name="Rating"
+        component={Rating}
+        options={{
+
+          // header: ({ navigation, scene }) => (
+          //   <Header
+          //     // transparent
+          //     title="Order"
+          //     navigation={navigation}
+          //     scene={scene}
+          //   />
+          // ),
+          // headerTransparent: true
+
+          headerTitle: "Rate your order",
+          // headerTitleStyle: { display: 'none' },
+          headerBackTitleStyle:{ color: nowTheme.COLORS.PRIMARY, display: 'none' },
+          headerTintColor: nowTheme.COLORS.PRIMARY,
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function OrdersStack(props) {
+  return (
+    <Stack.Navigator initialRouteName="Cart" mode="card" headerMode="screen">
+      <Stack.Screen
+        name="CustomOrders"
+        component={CustomOrders}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              // transparent
+              title="Custom Orders"
+              navigation={navigation}
+              hideTitle
+              scene={scene}
+            />
+          ),
+          headerTransparent: true
+        }}
+      />
+      <Stack.Screen
+        name="CustomOrdersEdit"
+        component={EditCustomOrders}
+        options={{
+          // header: ({ navigation, scene }) => (
+          //   <Header
+          //     // transparent
+          //     title="Edit Custom Orders"
+          //     navigation={navigation}
+          //     // hideTitle
+          //     isBack
+          //     scene={scene}
+          //   />
+          // ),
+          // headerTransparent: true
+
+          // headerTitleStyle: { display: 'none' },
+          headerBackTitleStyle:{ color: nowTheme.COLORS.PRIMARY, display: 'none' },
+          headerTintColor: nowTheme.COLORS.PRIMARY,
+          headerTitle: "Custom Orders"
         }}
       />
     </Stack.Navigator>
@@ -223,9 +283,9 @@ function ProfileStack(props) {
 
 function SettingsStack(props) {
   return (
-    <Stack.Navigator initialRouteName="Settings" mode="card" headerMode="screen">
+    <Stack.Navigator initialRouteName="Main" mode="card" headerMode="screen">
       <Stack.Screen
-        name="Settings"
+        name="Main"
         component={Settings}
         options={{
           header: ({ navigation, scene }) => (
@@ -237,6 +297,16 @@ function SettingsStack(props) {
             />
           ),
           cardStyle: { backgroundColor: "#FFFFFF" }
+        }}
+      />
+      <Stack.Screen
+        name="NotificationsSettings"
+        component={Notification}
+        options={{
+          // headerTitleStyle: { display: 'none' },
+          headerBackTitleStyle:{ color: nowTheme.COLORS.PRIMARY, display: 'none' },
+          headerTintColor: nowTheme.COLORS.PRIMARY,
+          headerTitle: "Notifications Settings"
         }}
       />
     </Stack.Navigator>
@@ -315,7 +385,8 @@ function StoreStack(props) {
 
 function AppStack(props) {
   const { isAuthenticated } = useUserContext();
-  const routeName = getFocusedRouteNameFromRoute(props.route) ?? 'Home';
+  const { route } = props;
+  const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home';
 
   const renderAccount = () => {
     try {
@@ -325,13 +396,14 @@ function AppStack(props) {
       return <Drawer.Screen name="Account" component={AccountStack} />
     } catch (error) {
       console.log('AppStack - renderAccount', error)
+      return error;
     }
   }
 
   return (
     <Drawer.Navigator
       style={{ flex: 1 }}
-      drawerContent={props => <CustomDrawerContent routeName={routeName} {...props} />}
+      drawerContent={propsDrawer => <CustomDrawerContent routeName={routeName} {...propsDrawer} />}
       drawerStyle={{
         backgroundColor: nowTheme.COLORS.PRIMARY,
         width: width * 0.8
@@ -363,7 +435,7 @@ function AppStack(props) {
       {renderAccount()}
       <Drawer.Screen name="Stores" component={StoresStack} />
       <Drawer.Screen name="TrackOrder" component={OrderStack} />
-      <Drawer.Screen name="Articles" component={ArticlesStack} />
+      <Drawer.Screen name="Orders" component={OrdersStack} />
       <Drawer.Screen name="Store" component={StoreStack} />
       <Drawer.Screen name="Settings" component={SettingsStack} />
       <Drawer.Screen name="Shopping" component={CheckoutStack} />

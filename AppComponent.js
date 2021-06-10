@@ -1,16 +1,17 @@
+/* eslint-disable global-require */
 import React, { useEffect, useRef, useState } from 'react';
 import { Image, Alert } from 'react-native';
 import AppLoading from 'expo-app-loading';
-import * as Analytics from 'expo-firebase-analytics';
 import RNRestart from 'react-native-restart';
 import * as Font from 'expo-font';
 import { Asset } from 'expo-asset';
-import { Block, GalioProvider, Toast } from 'galio-framework';
+import { Block, GalioProvider } from 'galio-framework';
 import { NavigationContainer } from '@react-navigation/native';
 // import RNExitApp from 'react-native-exit-app';
 // import * as SplashScreen from 'expo-splash-screen';
-import { setNativeExceptionHandler, setJSExceptionHandler } from "react-native-exception-handler";
-
+import { setJSExceptionHandler } from "react-native-exception-handler";
+import Toast from './components/Toast'
+import AlertComponent from './components/Alert'
 import Screens from './navigation/Screens';
 import { Images, articles, nowTheme } from './constants';
 import { useUserContext } from './context/UserContext';
@@ -40,13 +41,13 @@ function cacheImages(images) {
   return images.map(image => {
     if (typeof image === 'string') {
       return Image.prefetch(image);
-    } else {
+    } 
       return Asset.fromModule(image).downloadAsync();
-    }
+    
   });
 }
 
-export default function AppComponent (props) {
+export default function AppComponent () {
   const navigationRef = useRef();
   const routeNameRef = useRef();
   const [state, setState] = useState({
@@ -59,39 +60,7 @@ export default function AppComponent (props) {
 
   const cacheProfileImage = async (url) => {
     assetImages.push(url)
-    return await Image.prefetch(url)
-  }
-
-  const authStateChanged = (user) => {
-    try {
-      if (user && user.providerData) {
-        getUser(user.uid)
-        .then((userData) => {
-          const data = userData.data()
-          setUser({
-            ...data,
-            ...user.providerData[0],
-            emailVerified: user.emailVerified,
-            refreshToken: user.refreshToken,
-            token: user.accessToken,
-            uid: user.uid
-          })
-        })
-        .catch((error) => {
-          console.log('getUser error', error)
-          setUser({
-            ...user.providerData[0],
-            emailVerified: user.emailVerified,
-            refreshToken: user.refreshToken,
-            token: user.accessToken,
-            uid: user.uid
-          })
-        })
-        if (user.providerData[0].photoURL) cacheProfileImage(user.providerData[0].photoURL)
-      }
-    } catch (error) {
-      console.log('error', error)
-    }
+    return Image.prefetch(url)
   }
 
   const reporter = (error) => {
@@ -114,7 +83,7 @@ export default function AppComponent (props) {
   
           We have reported this to our team ! Please close the app and start again!
           `,
-        [{ text: "Close", onPress: () => RNRestart.Restart() /*RNExitApp.exitApp()*/ }]
+        [{ text: "Close", onPress: () => RNRestart.Restart() /* RNExitApp.exitApp() */ }]
       );
     } else {
       console.log(error); // So that we can see it in the ADB logs in case of Android if needed
@@ -125,23 +94,23 @@ export default function AppComponent (props) {
   const allowInDevMode = true
   setJSExceptionHandler(errorHandler, allowInDevMode);
 
-  const exceptionhandler = (exceptionString) => {
-    // your exception handler code here
-    console.log('exceptionString', exceptionString)
-  };
+  // const exceptionhandler = (exceptionString) => {
+  //   // your exception handler code here
+  //   console.log('exceptionString', exceptionString)
+  // };
 
   /* - forceAppQuit is an optional ANDROID specific parameter that defines
   //    if the app should be force quit on error.  default value is true.
   //    To see usecase check the common issues section.
   */
-  const forceAppQuit = false;
+  // const forceAppQuit = false;
   /**
     // - executeDefaultHandler is an optional boolean (both IOS, ANDROID)
     //   It executes previous exception handlers if set by some other module.
     //   It will come handy when you use any other crash analytics module along with this one
     //   Default value is set to false. Set to true if you are using other analytics modules.
    */
-  const executeDefaultHandler = true
+  // const executeDefaultHandler = true
 
   // setNativeExceptionHandler(
   //   exceptionhandler,
@@ -149,13 +118,45 @@ export default function AppComponent (props) {
   //   executeDefaultHandler
   // );
 
-  useEffect(async () => {
+  useEffect(() => {
+    const authStateChanged = (user) => {
+      try {
+        if (user && user.providerData) {
+          getUser(user.uid)
+          .then((userData) => {
+            const data = userData.data()
+            setUser({
+              ...data,
+              ...user.providerData[0],
+              emailVerified: user.emailVerified,
+              refreshToken: user.refreshToken,
+              token: user.accessToken,
+              uid: user.uid
+            })
+          })
+          .catch((error) => {
+            console.log('getUser error', error)
+            setUser({
+              ...user.providerData[0],
+              emailVerified: user.emailVerified,
+              refreshToken: user.refreshToken,
+              token: user.accessToken,
+              uid: user.uid
+            })
+          })
+          if (user.providerData[0].photoURL) cacheProfileImage(user.providerData[0].photoURL)
+        }
+      } catch (error) {
+        console.log('error', error)
+      }
+    }
+  
     // await SplashScreen.preventAutoHideAsync();
-    let subscribe = firebase.auth().onAuthStateChanged(authStateChanged)
-    return subscribe
-  }, [])
+    const unsubscribe = firebase.auth().onAuthStateChanged(authStateChanged)
+    return () => unsubscribe()
+  }, [setUser])
 
-  const _loadResourcesAsync = async () => {
+  const loadResourcesAsync = async () => {
     await Font.loadAsync({
       'montserrat-regular': require('./assets/font/Montserrat-Regular.ttf'),
       'montserrat-bold': require('./assets/font/Montserrat-Bold.ttf')
@@ -165,13 +166,36 @@ export default function AppComponent (props) {
     return Promise.all([...cacheImages(assetImages)]);
   };
 
-  const _handleLoadingError = error => {
+  const onNavigationReady = () => {
+    (routeNameRef.current = navigationRef.current.getCurrentRoute().name)
+  }
+
+  const onNavigationStateChange = async () => {
+    const previousRouteName = routeNameRef.current;
+    const currentRouteName = navigationRef.current.getCurrentRoute().name;
+
+    if (previousRouteName !== currentRouteName) {
+      // The line below uses the expo-firebase-analytics tracker
+      // https://docs.expo.io/versions/latest/sdk/firebase-analytics/
+      // Change this line to use another Mobile analytics SDK
+      setToast({ message: null});
+      // await Analytics().logScreenView({
+      //   screen_name: currentRouteName,
+      //   screen_class: currentRouteName
+      // });
+    }
+
+    // Save the current route name for later comparison
+    routeNameRef.current = currentRouteName;
+  }
+
+  const handleLoadingError = error => {
     // In this case, you might want to report the error to your error
     // reporting service, for example Sentry
     console.warn(error);
   };
 
-  const _handleFinishLoading = () => {
+  const handleFinishLoading = () => {
     if (state.fontLoaded) {
       setState({ isLoadingComplete: true })
       //   , async () => {
@@ -183,45 +207,27 @@ export default function AppComponent (props) {
   if (!state.isLoadingComplete) {
     return (
       <AppLoading
-        startAsync={_loadResourcesAsync}
-        onError={_handleLoadingError}
-        onFinish={_handleFinishLoading}
+        startAsync={loadResourcesAsync}
+        onError={handleLoadingError}
+        onFinish={handleFinishLoading}
       />
     );
-  } else {
-    return (
-      <NavigationContainer
-        ref={navigationRef}
-        onReady={() =>
-          (routeNameRef.current = navigationRef.current.getCurrentRoute().name)
-        }
-        onStateChange={async () => {
-          const previousRouteName = routeNameRef.current;
-          const currentRouteName = navigationRef.current.getCurrentRoute().name;
-
-          if (previousRouteName !== currentRouteName) {
-            // The line below uses the expo-firebase-analytics tracker
-            // https://docs.expo.io/versions/latest/sdk/firebase-analytics/
-            // Change this line to use another Mobile analytics SDK
-            setToast({ message: null});
-            // await Analytics().logScreenView({
-            //   screen_name: currentRouteName,
-            //   screen_class: currentRouteName
-            // });
-          }
-
-          // Save the current route name for later comparison
-          routeNameRef.current = currentRouteName;
-        }}
-      >
-        <GalioProvider theme={nowTheme}>
-          <Block flex>
-            {/* TODO: Remove and integrate Alert for successful Checkout -- tobe done on Checkout */}
-            <Toast textStyle={{textAlign: 'center'}} color="success" isShow={!!toast.message} positionIndicator="top">{toast.message}</Toast>
-            <Screens />
-          </Block>
-        </GalioProvider>
-      </NavigationContainer>
-    );
   }
+
+  return (
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={onNavigationReady}
+      onStateChange={onNavigationStateChange}
+    >
+      <GalioProvider theme={nowTheme}>
+        <Block flex>
+          {/* TODO: Remove and integrate Alert for successful Checkout -- tobe done on Checkout */}
+          <AlertComponent />
+          <Toast textStyle={{textAlign: 'center'}} color="success" isShow={!!toast.message} positionIndicator="top">{toast.message}</Toast>
+          <Screens />
+        </Block>
+      </GalioProvider>
+    </NavigationContainer>
+  );
 }

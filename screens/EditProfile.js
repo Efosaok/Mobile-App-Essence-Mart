@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { StyleSheet, Dimensions, Image, ImageBackground, Alert } from 'react-native';
-import { Block, Text, theme, Button as GaButton } from 'galio-framework';
+import { Block, Text, theme } from 'galio-framework';
 import { Button } from '../components';
 import { Images, nowTheme } from '../constants';
 import { useUserContext } from '../context/UserContext';
@@ -10,6 +10,24 @@ import { TakePicture, SelectImage } from '../shared/file_upload';
 import { useProfileContext } from '../context/ProfileContext';
 
 const { width, height } = Dimensions.get('screen');
+const profileStyle = { position: 'absolute', width, zIndex: 5, paddingHorizontal: 20 }
+const profileImageStyle = { top: height * 0.15 }
+const imgBtnUploadStyle = { height: 30, paddingHorizontal: 5, elevation: 0 }
+const editContainerStyle = { top: height * 0.2 }
+const displayNameStyle = {
+  fontFamily: 'montserrat-bold',
+  marginBottom: theme.SIZES.BASE / 2,
+  fontWeight: '900',
+  fontSize: 26
+}
+const verifyBtnStyle = {
+  marginTop: 5,
+  fontFamily: 'montserrat-bold',
+  lineHeight: 20,
+  fontWeight: 'bold',
+  fontSize: 18,
+  opacity: .8
+}
 const defaultData = {
   email: '',
   photoURL: '',
@@ -21,11 +39,13 @@ const defaultData = {
 
 const thumbMeasure = (width - 48 - 32) / 3;
 
-const EditProfile = ({ navigation }) => {
+const EditProfile = memo(({ navigation }) => {
   const { user, updateUser } = useUserContext();
-  const { setProfile, profile, profileError, profileLoading, loadingMessage } = useProfileContext()
+  const { setProfile, profile, profileError, setProfileError, profileLoading, loadingMessage } = useProfileContext()
   const [loaderMessage, setLoaderMessage] = useState('');
-  const [message, setMessage] = useState('')
+  const profileImageSource = (profile && profile.photoURL) ? {uri: profile.photoURL} : Images.ProfilePicture
+  const onAuthSuggestion = () => navigation.navigate('Account', { screen: 'Register' })
+  // const [message, setMessage] = useState('')
   const [state, setState] = useState({
     isLoading: false,
     isLoaded: false
@@ -33,7 +53,7 @@ const EditProfile = ({ navigation }) => {
 
   useEffect(() => {
     setProfile({ ...defaultData, ...user })
-  }, [])
+  }, [setProfile, user])
 
   const updateInputVal = (val, prop) => {
     const currentState = {...profile};
@@ -41,17 +61,15 @@ const EditProfile = ({ navigation }) => {
     setProfile(currentState);
   }
 
-  const displayMessage = () => {
-    profileError &&  Alert.alert(null, `${profileError}`, [
-      { text: "OK", onPress: () => setMessage("") }
-    ]);
-  }
+  const displayMessage = () => profileError &&  Alert.alert(null, `${profileError}`, [
+      { text: "OK", onPress: () => setProfileError("") }
+    ])
 
   const BlobImage = async(imageUri) => {
     const response = await fetch(imageUri);
     const blob = await response.blob();
-    const filename = 'profile_' + user.uid;
-    var ref =  firebase.storage().ref().child(filename);
+    const filename = `profile_${  user.uid}`;
+    const ref =  firebase.storage().ref().child(filename);
     return ref.put(blob);
   }
 
@@ -60,8 +78,8 @@ const EditProfile = ({ navigation }) => {
       console.log('Gallery', e)
       setState({ ...state, isLoading: true });
       BlobImage(e)
-      .then((res) => {
-        const filename = 'profile_' + user.uid;
+      .then(() => {
+        const filename = `profile_${  user.uid}`;
         setLoaderMessage('Uploading your picture')
         firebase.storage().ref(filename).getDownloadURL()
         .then((photoURL) => {
@@ -113,28 +131,23 @@ const EditProfile = ({ navigation }) => {
           imageStyle={styles.profileBackground}
         >
           <Block flex style={styles.profileCard}>
-            <Block style={{ position: 'absolute', width: width, zIndex: 5, paddingHorizontal: 20 }}>
-              <Block middle style={{ top: height * 0.15 }}>
-                <Image source={(profile && profile.photoURL) ? {uri: profile.photoURL} : Images.ProfilePicture} style={styles.avatar} />
+            <Block style={profileStyle}>
+              <Block middle style={profileImageStyle}>
+                <Image source={profileImageSource} style={styles.avatar} />
                 <Button
                   color="WARNING"
-                  style={{ height: 30, paddingHorizontal: 5, elevation: 0 }}
+                  style={imgBtnUploadStyle}
                   textStyle={{ fontSize: 14 }}
-                  onPress={() => uploadOptions()}
+                  onPress={uploadOptions}
                   round
                 >
                   Change Profile Photo
                 </Button>
               </Block>
-              <Block style={{ top: height * 0.2 }}>
+              <Block style={editContainerStyle}>
                 <Block middle >
                   <Text
-                    style={{
-                      fontFamily: 'montserrat-bold',
-                      marginBottom: theme.SIZES.BASE / 2,
-                      fontWeight: '900',
-                      fontSize: 26
-                    }}
+                    style={displayNameStyle}
                     color='#ffffff'
                     >
                     {(user && user.displayName) || "Teni Makanaki"}
@@ -143,14 +156,7 @@ const EditProfile = ({ navigation }) => {
                   <Text
                     size={16}
                     color="white"
-                    style={{
-                      marginTop: 5,
-                      fontFamily: 'montserrat-bold',
-                      lineHeight: 20,
-                      fontWeight: 'bold',
-                      fontSize: 18,
-                      opacity: .8
-                    }}
+                    style={verifyBtnStyle}
                   >
                     {user && user.emailVerified && "Verified" }
                   </Text>
@@ -162,7 +168,7 @@ const EditProfile = ({ navigation }) => {
                     heading="Login"
                     action="Login"
                     updateInputVal={updateInputVal}
-                    onAuthSuggestionAction={() => navigation.navigate('Account', { screen: 'Register' })}
+                    onAuthSuggestionAction={onAuthSuggestion}
                     authSuggestionDescription="Need an account? "
                     authSuggestionAction="Register"
                     displayMessage={displayMessage}
@@ -182,7 +188,7 @@ const EditProfile = ({ navigation }) => {
       </Block>
     </Block>
   )
-}
+})
 
 const styles = StyleSheet.create({
   profileContainer: {

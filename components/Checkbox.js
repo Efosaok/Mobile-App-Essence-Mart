@@ -4,7 +4,7 @@ import {
   TouchableWithoutFeedback,
   StyleSheet
 } from 'react-native';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {Text} from 'galio-framework'
 
@@ -16,19 +16,18 @@ export default class Checkbox extends React.Component {
     };
   }
 
-  _onPress(_id) {
-    this.setState({ checked: !this.state.checked });
+  onPress() {
+    this.setState((prevState) => ({ ...prevState, checked: !prevState.checked }));
   }
 
   render() {
     const { iconColor, textStyle, label, id, } = this.props;
-    const isChecked =  this.state.checked;
+    const { checked: isChecked } =  this.state;
+
     return (
        <TouchableWithoutFeedback
         key={id}
-        onPress={() => {
-          this._onPress(id);
-        }}
+        onPress={this.onPress}
       >
         <View
           style={styles.checkboxContainer}
@@ -41,7 +40,7 @@ export default class Checkbox extends React.Component {
           <View
             style={{ marginLeft: 5 }}
           >
-            <Text style={{...textStyle}}>{'' + label}</Text>
+            <Text style={{...textStyle}}>{label}</Text>
           </View>
         </View>
       </TouchableWithoutFeedback>
@@ -49,13 +48,13 @@ export default class Checkbox extends React.Component {
   }
 }
 
-Checkbox.propTypes = {
-  id: PropTypes.string,
-  label: PropTypes.string,
-  iconColor: PropTypes.string,
-  checked: PropTypes.bool,
-  onChecked: PropTypes.func,
-};
+// Checkbox.propTypes = {
+//   id: PropTypes.string,
+//   label: PropTypes.string,
+//   iconColor: PropTypes.string,
+//   checked: PropTypes.bool,
+//   onChecked: PropTypes.func,
+// };
 
 const styles = StyleSheet.create({
   checkboxContainer: {

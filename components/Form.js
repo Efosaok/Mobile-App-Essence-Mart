@@ -8,15 +8,19 @@ import {
 } from 'react-native';
 import { Block, Checkbox, Text, Button as GaButton, theme } from 'galio-framework';
 
-import { Button, Icon, Input } from '../components';
+import { Button, Icon, Input } from ".";
 import { Images, nowTheme } from '../constants';
-import Loader from '../components/Loader';
+import Loader from "./Loader";
 
 const { width, height } = Dimensions.get('screen');
 
+const dismissKeyboard = () =>  Keyboard.dismiss()
+
 const DismissKeyboard = ({ children }) => (
-  <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>{children}</TouchableWithoutFeedback>
+  <TouchableWithoutFeedback onPress={dismissKeyboard}>{children}</TouchableWithoutFeedback>
 );
+
+const emptyFunc = () => {}
 
 function Form ({
     displayMessage,
@@ -31,7 +35,8 @@ function Form ({
     loaderMessage,
     isLogin,
     isEditProfile,
-    inputData
+    inputData,
+    isCustomOrder
 }) {
   return (
     <DismissKeyboard>
@@ -41,12 +46,12 @@ function Form ({
           style={styles.imageBackgroundContainer}
           imageStyle={styles.imageBackground}
         >
-        {displayMessage()}
+        {/* {displayMessage()} */}
         {isLoading && <Loader text={loaderMessage} isLoading={isLoading} />}
           <Block flex middle>
-            <Block style={{...styles.registerContainer, ...(isEditProfile ? { height, marginTop: 0 } : null)}}>
+            <Block style={{...styles.registerContainer, ...(isEditProfile || isCustomOrder ? { height, marginTop: 0 } : null)}}>
               <Block flex space="evenly">
-                <Block flex={0.4} middle style={{...styles.socialConnect, display: isEditProfile ? 'none' : 'flex'}}>
+                {!isCustomOrder && <Block flex={0.4} middle style={{...styles.socialConnect, display: isEditProfile ? 'none' : 'flex'}}>
                   <Block flex={0.5} middle>
                     <Text
                       style={{
@@ -79,15 +84,15 @@ function Form ({
                       shadowless
                       icon="facebook"
                       iconFamily="Font-Awesome"
-                      onPress={() => {}}
+                      onPress={emptyFunc}
                       iconColor={theme.COLORS.WHITE}
                       iconSize={theme.SIZES.BASE * 1.625}
                       color={nowTheme.COLORS.FACEBOOK}
                       style={[styles.social, styles.shadow]}
                     />
                   </Block>
-                </Block>
-                <Block flex={0.1} middle style={{ display: isEditProfile ? 'none' : 'flex' }}>
+                </Block>}
+                <Block flex={0.1} middle style={{ display: (isEditProfile || isCustomOrder) ? 'none' : 'flex' }}>
                   <Text
                     style={{
                       fontFamily: 'montserrat-regular',
@@ -102,13 +107,14 @@ function Form ({
                 <Block flex={1} middle space="between">
                   <Block center flex={0.9}>
                     <Block flex space="between">
-                      <Block>
+                      {!isCustomOrder ? <Block>
                         <Block width={width * 0.8} style={{ marginBottom: 5 }}>
                           <Input
                             placeholder="Email"
                             style={styles.inputs}
                             editable={!isEditProfile}
                             value={inputData.email}
+                            autoCapitalize="none"
                             onChangeText={(val) => updateInputVal(val, 'email')}
                             iconContent={
                               <Icon
@@ -229,7 +235,27 @@ function Form ({
                           />
                         </Block>
                       </Block>
-                      <Block center style={{ display: isEditProfile ? 'none' : 'flex' }}>
+                      : <Block>
+                        <Block width={width * 0.8} style={{ marginBottom: 5 }}>
+                          <Input
+                            placeholder="Title"
+                            style={styles.inputs}
+                            editable={!isEditProfile}
+                            value={inputData.title}
+                            onChangeText={(val) => updateInputVal(val, 'title')}
+                            iconContent={
+                              <Icon
+                                size={16}
+                                color="#ADB5BD"
+                                name="cube-size2x"
+                                family="NowExtra"
+                                style={styles.inputIcons}
+                              />
+                            }
+                          />
+                        </Block>
+                      </Block>}
+                      {!isCustomOrder && <Block center style={{ display: isEditProfile ? 'none' : 'flex' }}>
                         <Button onPress={onPress} color="primary" round style={styles.createButton}>
                           <Text
                             style={{ fontFamily: 'montserrat-bold' }}
@@ -239,15 +265,15 @@ function Form ({
                             {action}
                           </Text>
                         </Button>
-                      </Block>
-                      <Block style={{ display: isEditProfile ? 'none' : 'flex' }}>
+                      </Block>}
+                      {!isCustomOrder && <Block style={{ display: isEditProfile ? 'none' : 'flex' }}>
                         <Text 
                           // style={styles.loginText}
                           onPress={onAuthSuggestionAction}>
                           {authSuggestionDescription}
                           <Text style={{ color: 'black', fontWeight: 'bold' }}> {authSuggestionAction}</Text>
                         </Text>
-                      </Block>
+                      </Block>}
                     </Block>
                   </Block>
                 </Block>
@@ -262,14 +288,14 @@ function Form ({
 
 const styles = StyleSheet.create({
   imageBackgroundContainer: {
-    width: width,
-    height: height,
+    width,
+    height,
     padding: 0,
     zIndex: 1
   },
   imageBackground: {
-    width: width,
-    height: height
+    width,
+    height
   },
   registerContainer: {
     marginTop: 55,
