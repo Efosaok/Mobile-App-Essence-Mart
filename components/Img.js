@@ -1,47 +1,51 @@
 import React from "react";
 import { StyleSheet, Image, Dimensions } from "react-native";
-import PropTypes from "prop-types";
+// import PropTypes from "prop-types";
 import { Block } from "galio-framework";
 
 import nowUITheme from "../constants/Theme";
 
 const { width } = Dimensions.get('screen');
 
-class Img extends React.Component {
-  render() {
-    const { color, style, type, children, source, ...props } = this.props;
+const Img = (props) => {
+  const { style, type } = props;
 
-    const colorStyle = color && nowUITheme.COLORS[color.toUpperCase()];
-    const avatarPhoto =
-    'https://images.unsplash.com/photo-1520271348391-049dd132bb7c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80';
-    const imageStyle = [
-        type,
+  // const colorStyle = color && nowUITheme.COLORS[color.toUpperCase()];
+  const avatarPhoto =
+  'https://images.unsplash.com/photo-1520271348391-049dd132bb7c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80';
 
-      { ...style }
-    ];
+  const imageStyle = [type, { ...style }];
 
-    return (
-      <Block>
-            <Image
-              source={{ uri:  avatarPhoto}}
-              style={type === "circle" ? [styles.round, styles.image]: type === "raised" ? [styles.raised, styles.image]: ''}
-            />
-      </Block>
-    );
+  const getImageStyle = () => {
+    if (type === "circle") {
+      return [styles.round, styles.image]
+    } if (type === "raised") {
+      return [styles.raised, styles.image]
+    }
+    return []
   }
+
+  return (
+    <Block>
+      <Image
+        source={{ uri:  avatarPhoto}}
+        style={[...getImageStyle(), ...imageStyle]}
+      />
+    </Block>
+  );
 }
 
-Img.propTypes = {
-  type: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.oneOf([
-      "circle",
-      "raised",
-      "circle-raised",
-    ])
-  ]),
-  source: PropTypes.string
-};
+// Img.propTypes = {
+//   type: PropTypes.oneOfType([
+//     PropTypes.string,
+//     PropTypes.oneOf([
+//       "circle",
+//       "raised",
+//       "circle-raised",
+//     ])
+//   ]),
+//   source: PropTypes.string
+// };
 
 const styles = StyleSheet.create({
   quote: {

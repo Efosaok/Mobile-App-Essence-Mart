@@ -22,7 +22,7 @@ function ErrorFallback({ resetErrorBoundary }) {
   );
 }
 
-export const ErrorHandler = ({ children }) => (
+const ErrorHandler = ({ children }) => (
   <ErrorBoundary FallbackComponent={ErrorFallback} onError={myErrorHandler}>
     {children}
   </ErrorBoundary>
@@ -38,3 +38,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
 });
+
+export default ErrorHandler;

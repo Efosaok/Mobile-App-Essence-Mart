@@ -3,15 +3,13 @@ import React from 'react';
 import { Block, Text } from 'galio-framework';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const Header = () => {
-  return (
-    <Block style={styles.headerStyle}>
-      <Icon name="ios-close" size={35} color="#a8a9ad" />
-      <Text style={{ fontSize: 18, fontFamily: 'montserrat-regular' }}>Shopping Cart</Text>
-      <Text>Empty</Text>
-    </Block>
-  );
-};
+const Header = () => (
+  <Block style={styles.headerStyle}>
+    <Icon name="ios-close" size={35} color="#a8a9ad" />
+    <Text style={{ fontSize: 18, fontFamily: 'montserrat-regular' }}>Shopping Cart</Text>
+    <Text>Empty</Text>
+  </Block>
+);
 
 const styles = {
   headerStyle: {

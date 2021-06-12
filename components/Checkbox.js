@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   TouchableWithoutFeedback,
@@ -8,44 +8,40 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import {Text} from 'galio-framework'
 
-export default class Checkbox extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      checked : props.checked || false
-    };
+const Checkbox = (props) => {
+  const { checked } = props
+  const [state, setState] = useState({
+    checked : checked || false
+  });
+
+  const onPress = () => {
+    setState((prevState) => ({ ...prevState, checked: !prevState.checked }));
   }
 
-  onPress() {
-    this.setState((prevState) => ({ ...prevState, checked: !prevState.checked }));
-  }
+  const { iconColor, textStyle, label, id, } = props;
+  const { checked: isChecked } =  state;
 
-  render() {
-    const { iconColor, textStyle, label, id, } = this.props;
-    const { checked: isChecked } =  this.state;
-
-    return (
-       <TouchableWithoutFeedback
-        key={id}
-        onPress={this.onPress}
+  return (
+    <TouchableWithoutFeedback
+      key={id}
+      onPress={onPress}
+    >
+      <View
+        style={styles.checkboxContainer}
       >
+        <Icon
+          name={isChecked ? 'md-checkbox' : 'ios-square-outline'}
+          size={20}
+          color={iconColor}
+        />
         <View
-          style={styles.checkboxContainer}
+          style={{ marginLeft: 5 }}
         >
-          <Icon
-            name={isChecked ? 'md-checkbox' : 'ios-square-outline'}
-            size={20}
-            color={iconColor}
-          />
-          <View
-            style={{ marginLeft: 5 }}
-          >
-            <Text style={{...textStyle}}>{label}</Text>
-          </View>
+          <Text style={{...textStyle}}>{label}</Text>
         </View>
-      </TouchableWithoutFeedback>
-    );
-  }
+      </View>
+    </TouchableWithoutFeedback>
+  );
 }
 
 // Checkbox.propTypes = {
@@ -62,3 +58,5 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
 });
+
+export default Checkbox

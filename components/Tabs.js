@@ -1,24 +1,47 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Dimensions, FlatList, Animated } from 'react-native';
 import { Block, theme } from 'galio-framework';
-
-const { width } = Dimensions.get('screen');
 import nowTheme from '../constants/Theme';
 
-const defaultMenu = [
-  { id: 'music', title: 'Music', },
-  { id: 'beauty', title: 'Beauty', },
-  { id: 'fashion', title: 'Fashion', },
-  { id: 'motocycles', title: 'Motocycles', },
-];
+const { width } = Dimensions.get('screen');
+
+// const defaultMenu = [
+//   { id: 'music', title: 'Music', },
+//   { id: 'beauty', title: 'Beauty', },
+//   { id: 'fashion', title: 'Fashion', },
+//   { id: 'motocycles', title: 'Motocycles', },
+// ];
 
 export default function Tabs (props) {
+  const { initialIndex, onChange, data } = props;
+  const animatedValue = useRef(new Animated.Value(0)).current;
+  const menuRef = React.createRef();
+
   const [state, setState] = useState({
     active: null,
   });
 
-  const animatedValue = useRef(new Animated.Value(0)).current;
-  const menuRef = React.createRef();
+  const selectMenu = useCallback(() => (id) => {
+    setState({ active: id });
+
+    menuRef.current.scrollToIndex({
+      index: data.findIndex(item => item.id === id),
+      viewPosition: 0.5
+    });
+
+    const animate = () => {
+      // animatedValue.setValue(0.01);
+  
+      Animated.timing(animatedValue, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: false, // color not supported
+      }).start()
+    }
+  
+    animate();
+    onChange(id)
+  }, [menuRef, data, animatedValue, onChange])
 
   // static defaultProps = {
   //   data: defaultMenu,
@@ -30,37 +53,16 @@ export default function Tabs (props) {
   // }
 
   useEffect(() => {
-    const { initialIndex } = props;
-    initialIndex && selectMenu(initialIndex);
-  }, [])
-
-  const animate = () => {
-    // animatedValue.setValue(0.01);
-
-    Animated.timing(animatedValue, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: false, // color not supported
-    }).start()
-  }
+    if (initialIndex) {
+      selectMenu(initialIndex);
+    }
+  }, [initialIndex, selectMenu])
 
   const onScrollToIndexFailed = () => {
     menuRef.current.scrollToIndex({
       index: 0,
       viewPosition: 0.5
     });
-  }
-
-  const selectMenu = (id) => {
-    setState({ active: id });
-
-    menuRef.current.scrollToIndex({
-      index: props.data.findIndex(item => item.id === id),
-      viewPosition: 0.5
-    });
-
-    animate();
-    props.onChange && props.onChange(id);
   }
 
   const renderItem = (item) => {
@@ -96,24 +98,20 @@ export default function Tabs (props) {
     )
   }
 
-  const renderMenu = () => {
-    const { data, ...props } = props;
-
-    return (
-      <FlatList
-        {...props}
-        data={data}
-        horizontal={true}
-        ref={menuRef}
-        extraData={state}
-        keyExtractor={(item) => item.id.toString()}
-        showsHorizontalScrollIndicator={false}
-        onScrollToIndexFailed={onScrollToIndexFailed}
-        renderItem={({ item }) => renderItem(item)}
-        contentContainerStyle={styles.menu}
-      />
-    )
-  }
+  const renderMenu = () => (
+    <FlatList
+      {...props}
+      data={data}
+      horizontal
+      ref={menuRef}
+      extraData={state}
+      keyExtractor={(item) => item.id.toString()}
+      showsHorizontalScrollIndicator={false}
+      onScrollToIndexFailed={onScrollToIndexFailed}
+      renderItem={({ item }) => renderItem(item)}
+      contentContainerStyle={styles.menu}
+    />
+  )
 
   return (
     <Block style={styles.container}>
@@ -124,7 +122,7 @@ export default function Tabs (props) {
 
 const styles = StyleSheet.create({
   container: {
-    width: width,
+    width,
     backgroundColor: theme.COLORS.WHITE,
     zIndex: 2,
   },

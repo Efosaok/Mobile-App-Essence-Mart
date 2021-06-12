@@ -81,9 +81,7 @@ const Header = memo((props) => {
   const isDraft = params && params.isDraft;
   const { goBack, openDrawer, back } = props.navigation
 
-  const handleLeftPress = useCallback(() => {
-    return back ? goBack() : openDrawer();
-  }, [back, goBack, openDrawer]);
+  const handleLeftPress = useCallback(() => back ? goBack() : openDrawer(), [back, goBack, openDrawer]);
 
   const saveCart = () => {
     setLoading(true);

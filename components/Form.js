@@ -23,7 +23,7 @@ const DismissKeyboard = ({ children }) => (
 const emptyFunc = () => {}
 
 function Form ({
-    displayMessage,
+    // displayMessage,
     updateInputVal,
     onPress,
     heading,
