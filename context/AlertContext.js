@@ -22,7 +22,7 @@ const useAlert = () => {
   }
 
   const setAlert = (alertData = alertProps) => {
-    setAlertState(prevState => ({ ...prevState, ...alertData }))
+    setAlertState(prevState => ({ ...prevState, title: '', ...alertData }))
   }
 
   return { setAlert, alertState, hideAlert }

@@ -15,19 +15,19 @@ const OrderConfirmed = require('../assets/order_confirmed.png');
 const OrderAddressOnMap = require('../assets/imgs/google-plain-map-lg.png');
 
 
-const Viewed = [
-  require('../assets/imgs/project5.jpg'),
-  require('../assets/imgs/project7.jpg'),
-  require('../assets/imgs/project6.jpg'),
-  require('../assets/imgs/project4.jpg'),
-  require('../assets/imgs/project21.jpg'),
-  require('../assets/imgs/project24.jpg')
-];
+// const Viewed = [
+//   require('../assets/imgs/project5.jpg'),
+//   require('../assets/imgs/project7.jpg'),
+//   require('../assets/imgs/project6.jpg'),
+//   require('../assets/imgs/project4.jpg'),
+//   require('../assets/imgs/project21.jpg'),
+//   require('../assets/imgs/project24.jpg')
+// ];
 
-const Products = {
-  text: 'View article',
-  path: require('../assets/imgs/bg15.jpg')
-};
+// const Products = {
+//   text: 'View article',
+//   path: require('../assets/imgs/bg15.jpg')
+// };
 
 export default {
   Onboarding,
@@ -35,10 +35,10 @@ export default {
   ProfileBackground,
   ProfilePicture,
   RegisterBackground,
-  Viewed,
+  // Viewed,
   Pro,
-  Products,
-  NowLogo: NowLogo,
+  // Products,
+  NowLogo,
   iOSLogo,
   androidLogo,
   CreativeTimLogo,

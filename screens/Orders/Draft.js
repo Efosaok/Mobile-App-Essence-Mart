@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Fragment } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -18,6 +18,8 @@ import { useCartContext } from '../../context/CartContext';
 import { getOrders } from '../../shared/methods/Orders';
 import { useUserContext } from '../../context/UserContext';
 import Loader from '../../components/Loader';
+import { SyntacticLoop, condition } from '../../shared/generics'
+import logger from '../../config/logger'
 
 const { width } = Dimensions.get('screen');
 const cacheData = [];
@@ -29,49 +31,47 @@ const thumbMeasure = (width - (width / 5));
 const DRAFT = (props) => {
   const { user, isAuthenticated } = useUserContext();
   // const { setOrders, draft, setOrder } = useCartContext()
-  const { setOrder } = useCartContext()
+  const { setOrder, setOrderCount } = useCartContext()
   const [isLoading, setLoading] = useState(false)
   const [draft, setOrders] = useState([])
   const { navigation } = props;
 
-  const clearCache = (status) => {
-    cacheData.splice(0, cacheData.length)
-    // document count;
-    docCount = 0;
-    setOrderCount(docCount, status)
-    setOrders([ ...cacheData, ...draft])
-    return
-  }
-
   useEffect(() => {
     const status = 'DRAFT';
+    const clearCache = () => {
+      cacheData.splice(0, cacheData.length)
+      // document count;
+      docCount = 0;
+      setOrderCount(docCount, status)
+      setOrders([ ...cacheData, ...draft])
+    }
+
     if (!isAuthenticated) return clearCache(status);
     try {
       setLoading(true)
       getOrders(user.uid, status)
       .onSnapshot(querySnapshot => {
-        querySnapshot.docChanges().forEach((change, index) => {
+        querySnapshot.docChanges().forEach((change) => {
           if (change.type === 'added') {
-            console.log('change.doc.id', change.doc.id)
+            logger.info('DRAFT:: change.doc.id', change.doc.id)
             docCount += 1;
             const item = { ...change.doc.data(), id: change.doc.id }
             if (!mounted) cacheData.push(item);
             else cacheData.unshift(item);
           }
           if (change.type === 'modified') {
-            console.log('Modified change.doc.id', change.doc.id)
+            logger.info('DRAFT:: Modified change.doc.id', change.doc.id)
             const item = { ...change.doc.data(), id: change.doc.id }
-            for (var i = 0; i < cacheData.length; i++) {
-              if (cacheData[i].uid === item.id) return cacheData[i] = item;
-            }
+            const dCondition = condition(cacheData, 'uid', 'equals', item.id)
+            // eslint-disable-next-line no-return-assign
+            SyntacticLoop(dCondition, (index) => cacheData[index] = item)
           }
           if (change.type === 'removed') {
-            console.log('Removed change.doc.id', change.doc.id)
+            logger.info('DRAFT:: Removed change.doc.id', change.doc.id)
             docCount -= 1;
             const item = { ...change.doc.data(), id: change.doc.id }
-            for (var i = 0; i < cacheData.length; i++) {
-              if (cacheData[i].uid === item.id) return cacheData.splice(i, 1);
-            }
+            const dCondition = condition(cacheData, 'uid', 'equals', item.id)
+            SyntacticLoop(dCondition, (index) => cacheData.splice(index, 1))
           }
         });
         mounted = true
@@ -79,13 +79,13 @@ const DRAFT = (props) => {
         setOrders([ ...cacheData, ...draft])
       }, (error) => {
         setLoading(false)
-        console.log('error --- error', error)
+        logger.error('Draft:: FIRST Catch ERROR', error)
       })
     } catch (error) {
-      console.log(error, '????????????>>>>>>>>>>')
+      logger.error('Draft:: LAST Catch ERROR', error)
       setLoading(false)
     }
-  }, [isAuthenticated])
+  }, [draft, isAuthenticated, setOrderCount, user.uid])
 
   const resolveNaming = (item) => (item && item.cart) || (item && item.carts)
 
@@ -95,15 +95,13 @@ const DRAFT = (props) => {
   }
 
   // TODO: Delete function, and store store title/name in the history
-  const resolveTitle = (item) => {
-    return (item && item.title) || 'Direct Store'
-  }
+  const resolveTitle = (item) => (item && item.title) || 'Direct Store'
 
   const getItem = (cartItem) => {
     const carts = resolveNaming(cartItem)
     const quantities = (cartItem && cartItem.quantities);
     const cartLength = (carts && carts.length);
-    const cart = (carts && carts.find(cart => cart.imageUrl));
+    const cart = (carts && carts.find(eachCart => eachCart.imageUrl));
 
     const item = {
       quantities: quantities || cartLength,
@@ -140,14 +138,14 @@ const DRAFT = (props) => {
           imgContainerFlex={0.34}
         />))}
         {(!draft || !draft.length) && (
-        <Fragment>
+        <>
           <Block flex column center style={styles.goodsStyle}>
             <Icon name="ios-clipboard-outline" size={thumbMeasure} style={{ color: "#DCDCDC", }} />
           </Block>
           <Block center>
             <Text style={{ color: nowTheme.COLORS.PRIMARY }}>Here is clear </Text>
           </Block>
-        </Fragment>)}
+        </>)}
       </ScrollView>
     </Block>
   );

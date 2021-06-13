@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   Dimensions,
   StyleSheet,
-  Alert,
 } from 'react-native';
 
 // galio components
@@ -18,29 +17,12 @@ import Loader from '../../components/Loader';
 const { width } = Dimensions.get('window');
 
 
-const defaultData = {
-  title: '',
-  description: '',
-  size: '',
-  color: '',
-}
 
-const EditCustomOrders = (props) => {
+const EditCustomOrders = () => {
   const [isLoading, setIsLoading] = useState(false)
-  const [state, setState] = useState({
-    isLoading: false,
-    isLoaded: false,
-    ...defaultData
-  })
-  const [errorMessage, setErrorMessage] = useState('')
-  const [message, setMessage] = useState('')
-
   const cta = 'Add'
   const cta2 = 'Cancel';
 
-  const showScreen = () => errorMessage && Alert.alert(null, errorMessage, [
-      { text: "OK", onPress: () => setErrorMessage("") }
-    ])
 
   const {
     buttonContainerStyle, 
@@ -114,15 +96,14 @@ const EditCustomOrders = (props) => {
 
   // TODO: clear cart on this screen or on Navigating to this screen
   return (
-    <Block flex style={{}} >
-      {showScreen()}
+    <Block flex>
       {isLoading && <Loader isLoading={isLoading} />}
       <Block center style={[styles.container]}>
           <Text style={styles.articleButton} size={14}>
             Please fill in below information. The important fields are description*, imageUrl*, quantity*, link*, color*, width*,
             size*, brand, price, colarSize, sleeveLength, chestSize, waistElement,
           </Text>
-        <Block row style={{ width, paddingTop: 9 }}>
+        {/* <Block row style={{ width, paddingTop: 9 }}> */}
           {/* <Form
             heading="Login"
             action="Login"
@@ -135,7 +116,7 @@ const EditCustomOrders = (props) => {
             // registerContainerStyle={{ maxHeight: 320 }}
             isCustomOrder
           /> */}
-        </Block>
+        {/* </Block> */}
       </Block>
 
       <Block center style={[styles.container, {paddingTop: 10, paddingBottom: 30, position: 'absolute', bottom: 0 }]}>

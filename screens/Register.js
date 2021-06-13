@@ -92,7 +92,7 @@ function Register () {
             console.log('error', error)
           }).catch((error) => {
             const err = { message: error.message || error};
-            setAlert({ message: err, title: 'ERROR' });
+            setAlert({ ...err, title: 'ERROR' });
             console.log('error', error)
           });
         })

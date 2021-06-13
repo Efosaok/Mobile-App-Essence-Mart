@@ -7,9 +7,8 @@ function useMemoryState(key, initialState) {
     const hasMemoryValue = Object.prototype.hasOwnProperty.call(memoryState, key);
     if (hasMemoryValue) {
       return memoryState[key]
-    } else {
-      return typeof initialState === 'function' ? initialState() : initialState;
-    }
+    } 
+    return typeof initialState === 'function' ? initialState() : initialState;
   });
 
   function onChange(nextState) {

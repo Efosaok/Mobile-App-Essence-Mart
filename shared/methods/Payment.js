@@ -1,11 +1,20 @@
+/* eslint-disable camelcase */
 import firebase from "../firebase";
 import generateId from '../generateId'
 // import { LoginManager, AccessToken } from 'react-native-fbsdk';
 
 const db = firebase.firestore();
 
-export const getPaystackResponse = (data) => {
-  return {
+export const getPaystackResponse = ({
+  amount,
+  authorization,
+  paid_at,
+  requested_amount,
+  reference,
+  status,
+  created_at,
+  currency
+}) => ({
     amount,
     authorization,
     paid_at,
@@ -14,8 +23,7 @@ export const getPaystackResponse = (data) => {
     status,
     created_at,
     currency
-  } = data
-}
+  })
 
 export const createPayment = (user, payment) => {
   const uid = generateId()
@@ -41,15 +49,15 @@ export const getPayments = (userId) => {
     .get()
 }
 
-export const getPayment = (paymentId) => { 
-  return db.collection(`payments/${paymentId}`)
+export const getPayment = (paymentId) =>  
+   db.collection(`payments/${paymentId}`)
   .get()
   // .paymentBy("email", "asc")
-}
 
-export const removePayment = (paymentId) => { 
-  return db.collection('payments')
+
+export const removePayment = (paymentId) =>  
+   db.collection('payments')
   .doc(paymentId)
   .delete()
   // .paymentBy("email", "asc")
-}
+

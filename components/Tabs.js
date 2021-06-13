@@ -35,7 +35,7 @@ export default function Tabs (props) {
       Animated.timing(animatedValue, {
         toValue: 1,
         duration: 300,
-        useNativeDriver: false, // color not supported
+        // useNativeDriver: false, // color not supported
       }).start()
     }
   
@@ -72,7 +72,7 @@ export default function Tabs (props) {
     }
 
     const textColor = animatedValue.interpolate({
-      inputRange: [0.01, 1],
+      inputRange: [0, 1],
       outputRange: [nowTheme.COLORS.TEXT, isActive ? nowTheme.COLORS.WHITE : nowTheme.COLORS.SECONDARY],
       extrapolate: 'clamp',
     });

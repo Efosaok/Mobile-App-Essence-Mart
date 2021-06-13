@@ -9,6 +9,7 @@ import { Text, Block } from 'galio-framework';
 import nowTheme from '../constants/Theme';
 // some button component
 import Button from './Button'
+import logger from '../config/logger';
 
 const { width } = Dimensions.get('screen');
 
@@ -26,7 +27,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch (error, errorInfo) {
-    console.log('error, errorInfo', error, errorInfo)
+    logger.error('error, errorInfo', error, errorInfo)
     // deal with errorInfo if needed
     Sentry.captureException(error);
   }

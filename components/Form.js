@@ -22,7 +22,7 @@ const DismissKeyboard = ({ children }) => (
 
 const emptyFunc = () => {}
 
-function Form ({
+const Form = ({
     // displayMessage,
     updateInputVal,
     onPress,
@@ -37,8 +37,7 @@ function Form ({
     isEditProfile,
     inputData,
     isCustomOrder
-}) {
-  return (
+}) => (
     <DismissKeyboard>
       <Block flex middle>
         <ImageBackground
@@ -283,8 +282,7 @@ function Form ({
         </ImageBackground>
       </Block>
     </DismissKeyboard>
-  );
-}
+  )
 
 const styles = StyleSheet.create({
   imageBackgroundContainer: {

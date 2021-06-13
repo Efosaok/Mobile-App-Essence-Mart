@@ -6,12 +6,14 @@ import { useUserContext } from '../context/UserContext';
 import firebase from "../shared/firebase";
 import { useLocationContext } from '../context/LocationContext';
 import Form from '../components/Form';
+import { useAlertContext } from '../context/AlertContext';
 
 function Login () {
   const { isLoggedIn } = useUserContext()
   const { lastRouteBeforeAuth } = useLocationContext()
   const gotoRoute = () => navigation.navigate('Account', { screen: 'Register' })
   const navigation = useNavigation();
+  const { setAlert } = useAlertContext()
   const { navigate } = navigation
   const [message, setMessage] = useState('')
   const [state, setState] = useState({
@@ -26,7 +28,6 @@ function Login () {
   useEffect(() => {
     setState(prevState => ({ ...prevState, isLoaded: true }))
     if (isLoggedIn) navigate('Stores')
-    return () => setMessage('')
   },[isLoggedIn, navigate]);
 
   const updateInputVal = (val, prop) => {
@@ -49,25 +50,23 @@ function Login () {
   const loginUser = () => {
     try {
       if(state.email === '' && state.password === '') {
-        setMessage('Enter details to login!')
+        setAlert({ message: 'Enter details to login!' })
       } else {
         setState({ ...state, isLoading: true })
         firebase
         .auth()
         .signInWithEmailAndPassword(state.email, state.password)
         .then(() => {
-          setMessage('')
           setState({ ...state, isLoading: false, email: '', password: '' })
           redirect()
         })
         .catch(error => {
-          console.log('error', error)
           setState({ ...state, isLoading: false })
-          setMessage(error.message || error)
+          setAlert({ message: error.message || error, title: 'ÉRROR' })
         })      
       }
     } catch (error) {
-      console.log('loginUser -- error', error)
+      setAlert({ message: error.message || error, title: 'ERROR' })
     }
   }
 

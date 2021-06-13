@@ -18,16 +18,17 @@ import { useCartContext } from '../context/CartContext';
 // screens
 import Home from '../screens/Home';
 import Onboarding from '../screens/Onboarding';
+import Register from '../screens/Register';
+import Login from '../screens/Login';
+import Stores from '../screens/Stores';
+import Store from '../screens/Store';
 
-const Profile = lazy(() => import('../screens/Profile'));
-const EditProfile = lazy(() => import('../screens/EditProfile'));
-const Register = lazy(() => import('../screens/Register'));
-const Login = lazy(() => import('../screens/Login'));
-const Stores = lazy(() => import('../screens/Stores'));
-const Store = lazy(() => import('../screens/Store'));
+import Profile from '../screens/Profile';
+import EditProfile from '../screens/EditProfile';
+import Checkout from '../screens/Checkout';
+
 const CartScreen = lazy(() => import('../screens/Cart'));
 const Settings = lazy(() => import('../screens/Settings/Settings'));
-const Checkout = lazy(() => import('../screens/Checkout'));
 const OrderConfirmed = lazy(() => import('../screens/Order/OrderConfirmed'));
 const OrderTracking = lazy(() => import('../screens/Orders'));
 const OrderInformation = lazy(() => import('../screens/Order/OrderInformation'));
@@ -431,7 +432,6 @@ function AppStack(props) {
       initialRouteName="Home"
     >
       <Drawer.Screen name="Home" component={HomeStack} />
-      {/* <Drawer.Screen name="Components" component={ComponentsStack} /> */}
       {renderAccount()}
       <Drawer.Screen name="Stores" component={StoresStack} />
       <Drawer.Screen name="TrackOrder" component={OrderStack} />

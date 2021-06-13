@@ -75,7 +75,6 @@ const Home = memo(() => {
   const navigation = useNavigation();
 
   const handlePress = (text) => {
-    console.log('text')
     if(text && subCategories[text]) {
       setState(prev => prev === text ? '' : text)
       setShopCategories({ category: text, items: subCategories[text] })

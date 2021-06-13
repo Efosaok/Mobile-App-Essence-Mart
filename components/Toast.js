@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Dimensions } from 'react-native';
-import { Text } from 'galio-framework';
+import { Block, Toast as ToastComponent } from 'galio-framework';
 
 import { useToastContext } from '../context/ToastContext';
 import nowTheme from '../constants/Theme';
@@ -9,25 +9,26 @@ const { width } = Dimensions.get('screen');
 
 // color	string	'primary'	one of: 'primary', 'theme', 'info', 'error', 'warning', 'success'
 
-function Toast() {
+const Toast = () => {
   const { toast } = useToastContext();
 
   return (
-    // <Block>
-    //   <ToastComponent
-    //     isShow={!!toast.message}
-    //     positionIndicator="top"
-    //     color={toast.type || 'error'}
-    //   >
-    //     This is a top positioned toast
-    //   </ToastComponent>
-    // </Block>
-    <Text styles={{ ...styles.toast, ...styles[toast.type || 'error'] }}>
-      {toast.message}
-    </Text>
+    <Block>
+      <ToastComponent
+        isShow={!!toast.message}
+        positionIndicator="top"
+        color={toast.type || 'error'}
+      >
+        This is a top positioned toast
+      </ToastComponent>
+    </Block>
+    // <Text styles={{ ...styles.toast, ...styles[toast.type || 'error'] }}>
+    //   {toast.message}
+    // </Text>
   );
 }
 
+// eslint-disable-next-line no-unused-vars
 const styles = StyleSheet.create({
   toast: {
     width,

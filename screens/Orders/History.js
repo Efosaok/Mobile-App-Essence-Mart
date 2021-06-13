@@ -1,3 +1,8 @@
+/* eslint-disable block-scoped-var */
+/* eslint-disable no-plusplus */
+/* eslint-disable no-return-assign */
+/* eslint-disable no-var */
+/* eslint-disable vars-on-top */
 import React, { useEffect, useState, Fragment } from 'react';
 import {
   ScrollView,
@@ -28,7 +33,7 @@ const thumbMeasure = (width - (width / 5));
 
 const History = (props) => {
   const { user, isAuthenticated } = useUserContext();
-  const { setOrder } = useCartContext()
+  const { setOrder, setOrderCount } = useCartContext()
   const [isLoading, setLoading] = useState(false)
   const [completedOrders, setOrders] = useState([])
   const { navigation } = props;
@@ -39,7 +44,7 @@ const History = (props) => {
     docCount = 0;
     setOrderCount(docCount)
     setOrders([ ...cacheData, ...completedOrders])
-    return
+    
   }
 
   useEffect(() => {
@@ -83,6 +88,7 @@ const History = (props) => {
       console.log(error, '????????????>>>>>>>>>>')
       setLoading(false)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated])
 
   const resolveNaming = (item) => (item && item.cart) || (item && item.carts)
@@ -93,15 +99,13 @@ const History = (props) => {
   }
 
   // TODO: Delete function, and store store title/name in the history
-  const resolveTitle = (item) => {
-    return (item && item.title) || 'Direct Store'
-  }
+  const resolveTitle = (item) => (item && item.title) || 'Direct Store'
 
   const getItem = (cartItem) => {
     const carts = resolveNaming(cartItem)
     const quantities = (cartItem && cartItem.quantities);
     const cartLength = (carts && carts.length);
-    const cart = (carts && carts.find(cart => cart.imageUrl));
+    const cart = (carts && carts.find(eachCart => eachCart.imageUrl));
 
     const item = {
       quantities: quantities || cartLength,
@@ -138,14 +142,14 @@ const History = (props) => {
           imgContainerFlex={0.34}
         />))}
         {(!completedOrders || !completedOrders.length) && (
-        <Fragment>
+        <>
           <Block flex column center style={styles.goodsStyle}>
             <Icon name="ios-clipboard-outline" size={thumbMeasure} style={{ color: "#DCDCDC", }} />
           </Block>
           <Block center>
             <Text style={{ color: nowTheme.COLORS.PRIMARY }}>Here is clear </Text>
           </Block>
-        </Fragment>)}
+        </>)}
       </ScrollView>
     </Block>
   );

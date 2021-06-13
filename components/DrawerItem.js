@@ -5,6 +5,7 @@ import { Block, Text, theme } from "galio-framework";
 import Icon from "./Icon";
 import nowTheme from "../constants/Theme";
 import { useUserContext } from "../context/UserContext";
+import logger from "../config/logger";
 
 const drawerStyle = { opacity: 0.5 }
 const drawerIconContainer = { marginRight: 5 }
@@ -16,7 +17,7 @@ const drawerTextStyle = {
   fontWeight: "300"
 }
 
-const DrawerItem = memo((props) => {
+const DrawerItem = (props) => {
   const { logoutSuccess } = useUserContext()
   const { title, focused, navigation, to } = props;
   const drawerIconColor = focused ? nowTheme.COLORS.PRIMARY : "white"
@@ -34,7 +35,7 @@ const DrawerItem = memo((props) => {
           navigation.navigate('Onboarding')
         })
         .catch((error) => {
-          console.log(`There has been a problem with your fetch operation: ${  error.message}`);
+          logger.error(`There has been a problem with your fetch operation: ${  error.message}`);
           // ADD THIS THROW error
           // throw error;
         });
@@ -43,14 +44,14 @@ const DrawerItem = memo((props) => {
       } else if (toUpperCase(title) === "GETTING STARTED") {
         Linking.openURL(
           "https://demos.creative-tim.com/now-ui-pro-react-native/docs/"
-        ).catch(err => console.error("An error occurred", err))
+        ).catch(err => logger.error("An error occurred", err))
       } else if (typeof to === 'object') {
         navigation.navigate(...to)
       } else if (to) {
         navigation.navigate(to)
       }
     } catch (error) {
-      console.log('drawer', error)
+      logger.error('drawer', error)
     }
   }
 
@@ -242,7 +243,7 @@ const DrawerItem = memo((props) => {
       </Block>
     </TouchableOpacity>
   );
-})
+}
 
 const styles = StyleSheet.create({
   defaultStyle: {

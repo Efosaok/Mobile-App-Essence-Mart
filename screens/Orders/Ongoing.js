@@ -18,6 +18,7 @@ import { useCartContext } from '../../context/CartContext';
 import { getOrders } from '../../shared/methods/Orders';
 import { useUserContext } from '../../context/UserContext';
 import Loader from '../../components/Loader';
+import logger from '../../context/Logger';
 
 const { width } = Dimensions.get('screen');
 const cacheData = [];
@@ -29,7 +30,7 @@ const thumbMeasure = (width - (width / 5));
 const Ongoing = (props) => {
   const { user, isAuthenticated } = useUserContext();
   // const { setOrders, ongoing, setOrder } = useCartContext()
-  const { setOrder } = useCartContext()
+  const { setOrder, setOrderCount } = useCartContext()
   const [isLoading, setLoading] = useState(false)
   const [ongoing, setOrders] = useState([])
   const { navigation } = props;
@@ -40,7 +41,6 @@ const Ongoing = (props) => {
     docCount = 0;
     setOrderCount(docCount, status)
     setOrders([ ...cacheData, ...ongoing])
-    return
   }
 
   useEffect(() => {
@@ -50,26 +50,26 @@ const Ongoing = (props) => {
       setLoading(true)
       getOrders(user.uid, status)
       .onSnapshot(querySnapshot => {
-        querySnapshot.docChanges().forEach((change, index) => {
+        querySnapshot.docChanges().forEach((change) => {
           if (change.type === 'added') {
-            console.log('change.doc.id', change.doc.id)
+            logger.info('change.doc.id', change.doc.id)
             docCount += 1;
             const item = { ...change.doc.data(), id: change.doc.id }
             if (!mounted) cacheData.push(item);
             else cacheData.unshift(item);
           }
           if (change.type === 'modified') {
-            console.log('Modified change.doc.id', change.doc.id)
+            logger.info('Modified change.doc.id', change.doc.id)
             const item = { ...change.doc.data(), id: change.doc.id }
-            for (var i = 0; i < cacheData.length; i++) {
+            for (let i = 0; i < cacheData.length; i++) {
               if (cacheData[i].uid === item.id) return cacheData[i] = item;
             }
           }
           if (change.type === 'removed') {
-            console.log('Removed change.doc.id', change.doc.id, JSON.stringify(cacheData))
+            logger.info('Removed change.doc.id', change.doc.id, JSON.stringify(cacheData))
             docCount -= 1;
             const item = { ...change.doc.data(), id: change.doc.id }
-            for (var i = 0; i < cacheData.length; i++) {
+            for (let i = 0; i < cacheData.length; i++) {
               if (cacheData[i].uid === item.id) return cacheData.splice(i, 1);
             }
           }
@@ -79,10 +79,10 @@ const Ongoing = (props) => {
         setOrders([ ...cacheData, ...ongoing])
       }, (error) => {
         setLoading(false)
-        console.log('error --- error', error)
+        logger.error('error --- error', error)
       })
     } catch (error) {
-      console.log(error, '????????????>>>>>>>>>>')
+      logger.error(error, '????????????>>>>>>>>>>')
       setLoading(false)
     }
     setLoading(false)
@@ -96,15 +96,13 @@ const Ongoing = (props) => {
   }
 
   // TODO: Delete function, and store store title/name in the history
-  const resolveTitle = (item) => {
-    return (item && item.title) || 'Direct Store'
-  }
+  const resolveTitle = (item) => (item && item.title) || 'Direct Store'
 
   const getItem = (cartItem) => {
     const carts = resolveNaming(cartItem)
     const quantities = (cartItem && cartItem.quantities);
     const cartLength = (carts && carts.length);
-    const cart = (carts && carts.find(cart => cart.imageUrl));
+    const cart = (carts && carts.find(eachCart => eachCart.imageUrl));
 
     const item = {
       quantities: quantities || cartLength,
@@ -141,14 +139,14 @@ const Ongoing = (props) => {
           imgContainerFlex={0.34}
         />))}
         {(!ongoing || !ongoing.length) && (
-        <Fragment>
+        <>
           <Block flex column center style={styles.goodsStyle}>
             <Icon name="ios-clipboard-outline" size={thumbMeasure} style={{ color: "#DCDCDC", }} />
           </Block>
           <Block center>
             <Text style={{ color: nowTheme.COLORS.PRIMARY }}>Here is clear </Text>
           </Block>
-        </Fragment>)}
+        </>)}
       </ScrollView>
     </Block>
   );

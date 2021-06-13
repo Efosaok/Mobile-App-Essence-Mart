@@ -1,8 +1,8 @@
 /* eslint-disable global-require */
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, Alert } from 'react-native';
+import { Image } from 'react-native';
 import AppLoading from 'expo-app-loading';
-import RNRestart from 'react-native-restart';
+// import RNRestart from 'react-native-restart';
 import * as Font from 'expo-font';
 import { Asset } from 'expo-asset';
 import { Block, GalioProvider } from 'galio-framework';
@@ -18,6 +18,8 @@ import { useUserContext } from './context/UserContext';
 import { useToastContext } from './context/ToastContext';
 import firebase from './shared/firebase'
 import { getUser } from './shared/methods/Users';
+import { useAlertContext } from './context/AlertContext';
+import logger from './config/logger';
 
 // cache app images
 const assetImages = [
@@ -52,11 +54,13 @@ export default function AppComponent () {
   const routeNameRef = useRef();
   const [state, setState] = useState({
     isLoadingComplete: false,
-    fontLoaded: false
+    fontLoaded: false,
+    isUserLoaded: false,
   });
 
   const { setUser } = useUserContext()
   const { setToast, toast } = useToastContext()
+  const { setAlert } = useAlertContext()
 
   const cacheProfileImage = async (url) => {
     assetImages.push(url)
@@ -66,7 +70,7 @@ export default function AppComponent () {
   const reporter = (error) => {
     // Logic for reporting to devs
     // Example : Log issues to github issues using github apis.
-    console.log(error); // sample
+    logger.info(error); // sample
   };
 
   const errorHandler = (error, isFatal) => {
@@ -76,19 +80,22 @@ export default function AppComponent () {
     // or hit a custom api to inform the dev team.
     if (isFatal) {
       reporter(error)
-      Alert.alert(
-        "Unexpected error occurred",
-        `
+      setAlert({
+        title: "Unexpected error occurred",
+        message: `
           Error: ${isFatal ? "Fatal:" : ""} ${error.name} ${error.message}
   
           We have reported this to our team ! Please close the app and start again!
-          `,
-        [{ text: "Close", onPress: () => RNRestart.Restart() /* RNExitApp.exitApp() */ }]
-      );
+          `
+      });
     } else {
-      console.log(error); // So that we can see it in the ADB logs in case of Android if needed
+      logger.info(error); // So that we can see it in the ADB logs in case of Android if needed
     }
-    console.log('error', error)
+    logger.info('error', error)
+  }
+
+  const hasFinishedUserAuthentication = () => {
+    setState(prev => ({ ...prev, isUserLoaded: true }))
   }
 
   const allowInDevMode = true
@@ -96,7 +103,7 @@ export default function AppComponent () {
 
   // const exceptionhandler = (exceptionString) => {
   //   // your exception handler code here
-  //   console.log('exceptionString', exceptionString)
+  //   logger.info('exceptionString', exceptionString)
   // };
 
   /* - forceAppQuit is an optional ANDROID specific parameter that defines
@@ -133,9 +140,10 @@ export default function AppComponent () {
               token: user.accessToken,
               uid: user.uid
             })
+            hasFinishedUserAuthentication()
           })
           .catch((error) => {
-            console.log('getUser error', error)
+            logger.info('getUser error', error)
             setUser({
               ...user.providerData[0],
               emailVerified: user.emailVerified,
@@ -143,11 +151,13 @@ export default function AppComponent () {
               token: user.accessToken,
               uid: user.uid
             })
+            hasFinishedUserAuthentication()
           })
           if (user.providerData[0].photoURL) cacheProfileImage(user.providerData[0].photoURL)
         }
       } catch (error) {
-        console.log('error', error)
+        hasFinishedUserAuthentication()
+        logger.info('error', error)
       }
     }
   
@@ -162,7 +172,7 @@ export default function AppComponent () {
       'montserrat-bold': require('./assets/font/Montserrat-Bold.ttf')
     });
 
-    setState({ fontLoaded: true });
+    setState(prev => ({ ...prev, fontLoaded: true }));
     return Promise.all([...cacheImages(assetImages)]);
   };
 
@@ -179,7 +189,8 @@ export default function AppComponent () {
       // https://docs.expo.io/versions/latest/sdk/firebase-analytics/
       // Change this line to use another Mobile analytics SDK
       setToast({ message: null});
-      // await Analytics().logScreenView({
+      setAlert({ message: '', title: '' })
+      // await Analytics().info({
       //   screen_name: currentRouteName,
       //   screen_class: currentRouteName
       // });
@@ -192,19 +203,19 @@ export default function AppComponent () {
   const handleLoadingError = error => {
     // In this case, you might want to report the error to your error
     // reporting service, for example Sentry
-    console.warn(error);
+    logger.error(error);
   };
 
   const handleFinishLoading = () => {
     if (state.fontLoaded) {
-      setState({ isLoadingComplete: true })
+      setState(prev => ({ ...prev, isLoadingComplete: true }))
       //   , async () => {
       //   await SplashScreen.hideAsync();
       // });
     }
   };
 
-  if (!state.isLoadingComplete) {
+  if (!state.isLoadingComplete && !state.isUserLoaded) {
     return (
       <AppLoading
         startAsync={loadResourcesAsync}
@@ -224,7 +235,14 @@ export default function AppComponent () {
         <Block flex>
           {/* TODO: Remove and integrate Alert for successful Checkout -- tobe done on Checkout */}
           <AlertComponent />
-          <Toast textStyle={{textAlign: 'center'}} color="success" isShow={!!toast.message} positionIndicator="top">{toast.message}</Toast>
+          {!!toast.message && <Toast
+              textStyle={{textAlign: 'center'}}
+              color="success"
+              isShow={!!toast.message}
+              positionIndicator="top"
+            >
+              {toast.message}
+            </Toast>}
           <Screens />
         </Block>
       </GalioProvider>

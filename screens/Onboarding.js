@@ -72,7 +72,7 @@ const Onboarding = memo(() => {
                   style={getStartedStyle}
                   color={theme.COLORS.WHITE}
                 >
-                  GET STARTED
+                  {isAuthenticated ? 'CLICK TO CONTINUE' : 'GET STARTED'}
                 </Text>
               </Button>
             </Block>
