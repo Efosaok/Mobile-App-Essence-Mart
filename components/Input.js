@@ -7,37 +7,35 @@ import { Input } from "galio-framework";
 import Icon from './Icon';
 import { nowTheme } from "../constants";
 
-class ArInput extends React.Component {
-  render() {
-    const { shadowless, success, error, primary, hasIcon } = this.props;
+const ArInput = (props) => {
+  const { shadowless, success, error, primary, hasIcon, style } = props;
 
-    const inputStyles = [
-      styles.input,
-      !shadowless,
-      success && styles.success,
-      error && styles.error,
-      primary && styles.primary,
-      {...this.props.style}
-    ];
+  const inputStyles = [
+    styles.input,
+    !shadowless,
+    success && styles.success,
+    error && styles.error,
+    primary && styles.primary,
+    {...style}
+  ];
 
-    return (
-      <Input
-        placeholder="write something here"
-        placeholderTextColor={nowTheme.COLORS.MUTED}
-        style={inputStyles}
-        color={nowTheme.COLORS.HEADER}
-        iconContent={
-          hasIcon ? <Icon
-            size={14}
-            color={nowTheme.COLORS.ICON}
-            name="link"
-            family="AntDesign"
-          /> : null
-        }
-        {...this.props}
-      />
-    );
-  }
+  return (
+    <Input
+      placeholder="write something here"
+      placeholderTextColor={nowTheme.COLORS.MUTED}
+      style={inputStyles}
+      color={nowTheme.COLORS.HEADER}
+      iconContent={
+        hasIcon ? <Icon
+          size={14}
+          color={nowTheme.COLORS.ICON}
+          name="link"
+          family="AntDesign"
+        /> : null
+      }
+      {...props}
+    />
+  );
 }
 
 ArInput.defaultProps = {

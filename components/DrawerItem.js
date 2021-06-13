@@ -1,17 +1,61 @@
-import React from "react";
+import React, { memo } from "react";
 import { StyleSheet, TouchableOpacity, Linking } from "react-native";
 import { Block, Text, theme } from "galio-framework";
 
 import Icon from "./Icon";
 import nowTheme from "../constants/Theme";
 import { useUserContext } from "../context/UserContext";
+import logger from "../config/logger";
+
+const drawerStyle = { opacity: 0.5 }
+const drawerIconContainer = { marginRight: 5 }
+const drawerIconStyle = { borderColor: "rgba(0,0,0,0.5)", opacity: 0.5 }
+const drawerContainer = { height: 60 }
+const drawerTextStyle = {
+  fontFamily: "montserrat-regular",
+  textTransform: "uppercase",
+  fontWeight: "300"
+}
 
 const DrawerItem = (props) => {
   const { logoutSuccess } = useUserContext()
+  const { title, focused, navigation, to } = props;
+  const drawerIconColor = focused ? nowTheme.COLORS.PRIMARY : "white"
+  const containerStyles = [
+    styles.defaultStyle,
+    focused ? [styles.activeStyle, styles.shadow] : null
+  ];
+  const toUpperCase = (str) => (str || str.toUpperCase()) || str
+
+  const logoutUser = () => {
+    try {
+      if (toUpperCase(title) === 'LOGOUT') {
+        logoutSuccess()
+        .then(() => {
+          navigation.navigate('Onboarding')
+        })
+        .catch((error) => {
+          logger.error(`There has been a problem with your fetch operation: ${  error.message}`);
+          // ADD THIS THROW error
+          // throw error;
+        });
+      } else if (toUpperCase(title) === 'SETTINGS') {
+        navigation.navigate('Settings', { screen: 'Settings' })
+      } else if (toUpperCase(title) === "GETTING STARTED") {
+        Linking.openURL(
+          "https://demos.creative-tim.com/now-ui-pro-react-native/docs/"
+        ).catch(err => logger.error("An error occurred", err))
+      } else if (typeof to === 'object') {
+        navigation.navigate(...to)
+      } else if (to) {
+        navigation.navigate(to)
+      }
+    } catch (error) {
+      logger.error('drawer', error)
+    }
+  }
 
   const renderIcon = () => {
-    const { title, focused } = props;
-
     switch (title) {
       case "Stores":
         return (
@@ -19,8 +63,8 @@ const DrawerItem = (props) => {
             name="shop2x"
             family="NowExtra"
             size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
+            color={drawerIconColor}
+            style={drawerStyle}
           />
         );
       case "Login / Register":
@@ -29,8 +73,8 @@ const DrawerItem = (props) => {
             name="badge2x"
             family="NowExtra"
             size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
+            color={drawerIconColor}
+            style={drawerStyle}
           />
         );
       case "Custom Orders":
@@ -39,8 +83,8 @@ const DrawerItem = (props) => {
             name="tag-content2x"
             family="NowExtra"
             size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
+            color={drawerIconColor}
+            style={drawerStyle}
           />
         );
       case "Track Orders":
@@ -49,8 +93,8 @@ const DrawerItem = (props) => {
             name="watch-time2x"
             family="NowExtra"
             size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
+            color={drawerIconColor}
+            style={drawerStyle}
           />
         );
       case "Call Customer Care":
@@ -59,8 +103,8 @@ const DrawerItem = (props) => {
             name="headphones-22x"
             family="NowExtra"
             size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
+            color={drawerIconColor}
+            style={drawerStyle}
           />
         );
       case "Notification":
@@ -69,8 +113,8 @@ const DrawerItem = (props) => {
             name="time-alarm2x"
             family="NowExtra"
             size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
+            color={drawerIconColor}
+            style={drawerStyle}
           />
         );
       case "Contact US / App Help":
@@ -79,8 +123,8 @@ const DrawerItem = (props) => {
             name="email-852x"
             family="NowExtra"
             size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
+            color={drawerIconColor}
+            style={drawerStyle}
           />
         );
       case "Home":
@@ -89,8 +133,8 @@ const DrawerItem = (props) => {
             name="app2x"
             family="NowExtra"
             size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
+            color={drawerIconColor}
+            style={drawerStyle}
           />
         );
       case "Components":
@@ -99,8 +143,8 @@ const DrawerItem = (props) => {
             name="atom2x"
             family="NowExtra"
             size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
+            color={drawerIconColor}
+            style={drawerStyle}
           />
         );
       case "Settings":
@@ -109,8 +153,8 @@ const DrawerItem = (props) => {
             name="settings-gear-642x"
             family="NowExtra"
             size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
+            color={drawerIconColor}
+            style={drawerStyle}
           />
         );
       case "Articles":
@@ -119,8 +163,8 @@ const DrawerItem = (props) => {
             name="paper"
             family="NowExtra"
             size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
+            color={drawerIconColor}
+            style={drawerStyle}
           />
         );
       case "Profile":
@@ -129,8 +173,8 @@ const DrawerItem = (props) => {
             name="profile-circle"
             family="NowExtra"
             size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
+            color={drawerIconColor}
+            style={drawerStyle}
           />
         );
       case "Account":
@@ -139,18 +183,8 @@ const DrawerItem = (props) => {
             name="badge2x"
             family="NowExtra"
             size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
-          />
-        );
-      case "Settings":
-        return (
-          <Icon
-            name="settings-gear-642x"
-            family="NowExtra"
-            size={18}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
-            style={{ opacity: 0.5 }}
+            color={drawerIconColor}
+            style={drawerStyle}
           />
         );
       case "Examples":
@@ -159,7 +193,7 @@ const DrawerItem = (props) => {
             name="album"
             family="NowExtra"
             size={14}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
+            color={drawerIconColor}
           />
         );
       case "GETTING STARTED":
@@ -168,8 +202,8 @@ const DrawerItem = (props) => {
             name="spaceship2x"
             family="NowExtra"
             size={18}
-            style={{ borderColor: "rgba(0,0,0,0.5)", opacity: 0.5 }}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
+            style={drawerIconStyle}
+            color={drawerIconColor}
           />
         );
       case "LOGOUT":
@@ -178,66 +212,30 @@ const DrawerItem = (props) => {
             name="share"
             family="NowExtra"
             size={18}
-            style={{ borderColor: "rgba(0,0,0,0.5)", opacity: 0.5 }}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
+            style={drawerIconStyle}
+            color={drawerIconColor}
           />
         );
       default:
         return null;
     }
   };
-  const { focused, title, navigation, to } = props;
-
-  const containerStyles = [
-    styles.defaultStyle,
-    focused ? [styles.activeStyle, styles.shadow] : null
-  ];
-
-  const logoutUser = () => {
-    try {
-      if (title == 'LOGOUT') {
-        logoutSuccess()
-        .then(() => {
-          navigation.navigate('Onboarding')
-        })
-        .catch(function(error) {
-          console.log('There has been a problem with your fetch operation: ' + error.message);
-          // ADD THIS THROW error
-          // throw error;
-        });
-      } else if (title == 'Settings') {
-        navigation.navigate('Settings', { screen: 'Settings' })
-      } else if (title == "GETTING STARTED") {
-        Linking.openURL(
-          "https://demos.creative-tim.com/now-ui-pro-react-native/docs/"
-        ).catch(err => console.error("An error occurred", err))
-      } else if (to) {
-        navigation.navigate(to)
-      }
-    } catch (error) {
-      console.log('drawer', error)
-    }
-  }
 
   return (
     <TouchableOpacity
-      style={{ height: 60 }}
-      onPress={() => logoutUser()}
+      style={drawerContainer}
+      onPress={logoutUser}
     >
       <Block flex row style={containerStyles}>
-        <Block middle flex={0.1} style={{ marginRight: 5 }}>
+        <Block middle flex={0.1} style={drawerIconContainer}>
           {renderIcon()}
         </Block>
         <Block row center flex={0.9}>
           <Text
-            style={{
-              fontFamily: "montserrat-regular",
-              textTransform: "uppercase",
-              fontWeight: "300"
-            }}
+            style={drawerTextStyle}
             size={12}
-            bold={focused ? true : false}
-            color={focused ? nowTheme.COLORS.PRIMARY : "white"}
+            bold={!!focused}
+            color={drawerIconColor}
           >
             {title}
           </Text>

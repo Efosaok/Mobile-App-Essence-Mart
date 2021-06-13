@@ -1,17 +1,19 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import AnimatedLoader from "react-native-animated-loader";
-import { Button } from '.';
+import Button from './Button';
 import { nowTheme } from '../constants';
 
-export default function Loader(props) {
+const animatedResource = require("../shared/41494-loader-animation-11.json")
+
+const Loader = memo((props) => {
   const { isLoading, text, onPress, showButton } = props;
 
   return (
     <AnimatedLoader
       visible={isLoading}
       overlayColor="rgba(255,255,255,0.75)"
-      source={require("../shared/41494-loader-animation-11.json")}
+      source={animatedResource}
       animationStyle={styles.lottie}
       speed={1}
     >
@@ -24,7 +26,7 @@ export default function Loader(props) {
       }
     </AnimatedLoader>
   );
-}
+})
 
 const styles = StyleSheet.create({
   lottie: {
@@ -32,3 +34,5 @@ const styles = StyleSheet.create({
     height: 100
   }
 });
+
+export default Loader

@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
 
+import { useNavigation } from '@react-navigation/native';
 import { useUserContext } from '../context/UserContext';
 import firebase from "../shared/firebase";
 import { createUser } from '../shared/methods/Users';
 import Form from '../components/Form';
+import { useAlertContext } from '../context/AlertContext';
 
-function Register ({ navigation }) {
+function Register () {
   const { setUser, isLoggedIn } = useUserContext()
   const [messageProps, setMessageProps] = useState({ message: '', navigate: false })
+  const { setAlert } = useAlertContext()
+  const { navigate } = useNavigation()
   const [state, setState] = useState({
     displayName: '',
     email: '', 
@@ -20,19 +23,23 @@ function Register ({ navigation }) {
   })
 
   useEffect(() => {
-    setState({ ...state, isLoaded: true })
-    if (isLoggedIn) {
-      navigation.navigate('Stores')
-    }
+    setState(prevState => ({ ...prevState, isLoaded: true }))
+    if (isLoggedIn) navigate('Stores')
     return () => setMessageProps({ message: '', navigate: false })
-  },[]);
+  },[isLoggedIn, navigate]);
+
+  const gotoLogin = () => navigate('Account', { screen: 'Login' })
+
+  const onConfirm = () => {
+    const { navigate: canNavigate } = messageProps;
+    if (canNavigate) {
+      navigate('Login')
+    } else { setMessageProps({ message: '', navigate: false }) }
+  }
 
   const displayMessage = () => {
-    const { message, navigate } = messageProps;
-    message && Alert.alert(null, `${message}`, [
-      { text: "OK", onPress: () => navigate ? navigation.navigate('Login')
-        : setMessageProps({ message: '', navigate: false })}
-    ]);
+    const { message } = messageProps;
+    setAlert({ message, onConfirm });
   }
 
   const updateInputVal = (val, prop) => {
@@ -43,13 +50,8 @@ function Register ({ navigation }) {
 
   const sendEmailVerification = (currentUser) => {
     currentUser.sendEmailVerification()
-    .then(async function() {
-      setMessageProps({ message: 'Verification email sent.', navigate: true })
-    })
-    .catch(function(error) {
-      // Error occurred. Inspect error.code.
-      setMessageProps({ message: message || error, navigate: false })
-    });
+    .then(() => setAlert({ message: 'Verification email sent.' }))
+    .catch((error) => setAlert({ message: error.message || error, title: 'ERROR' }));
   }
 
   // const registerWithFB = () => {
@@ -69,7 +71,7 @@ function Register ({ navigation }) {
   const registerUser = () => {
     try {
       if(state.email === '' && state.password === '') {
-        setMessageProps({ message: 'Enter details to signup!', navigate: false })
+        setAlert({ message: 'Enter details to signup!' });
       } else {
         setState({ ...state, isLoading: true })
         firebase
@@ -77,24 +79,26 @@ function Register ({ navigation }) {
         .createUserWithEmailAndPassword(state.email, state.password)
         .then((user) => {
           user.user.updateProfile({ displayName: state.displayName })
-          .then(async function() {
+          .then(async () => {
             await user.user.reload()
-            createUser(firebase.auth().currentUser.providerData[0])
+            const { providerData } = firebase.auth().currentUser.toJSON()
+            // console.log('firebase.auth().currentUser.toJSON()', firebase.auth().currentUser.toJSON())
+            // console.log('firebase.auth().currentUser.providerData[0]', providerData[0])
+            createUser(providerData[0])
             setUser(firebase.auth().currentUser.toJSON())
             sendEmailVerification(user.user)
-          }, function(error) {
-            const err = error.message || error;
-            setMessageProps({ message: err, navigate: false })
+          }, (error) => {
+            setAlert({ message: error.message || error });
             console.log('error', error)
-          }).catch(function(error) {
-            const err = error.message || error;
-            setMessageProps({ message: err, navigate: false })
+          }).catch((error) => {
+            const err = { message: error.message || error};
+            setAlert({ ...err, title: 'ERROR' });
             console.log('error', error)
           });
         })
         .catch(error => {
-          setState({ ...state, isLoading: false})
-          setMessageProps({ message: error.message || error, navigate: false })
+          setState({ ...state, isLoading: false })
+          setAlert({ message: error.message || error, title: 'ERROR' });
         })
       }
     } catch (error) {
@@ -107,7 +111,7 @@ function Register ({ navigation }) {
       heading="Register"
       action="Get Started"
       updateInputVal={updateInputVal}
-      onAuthSuggestionAction={() => navigation.navigate('Account', { screen: 'Login' })}
+      onAuthSuggestionAction={gotoLogin}
       authSuggestionDescription="Already have an account? "
       authSuggestionAction="Signin"
       displayMessage={displayMessage}

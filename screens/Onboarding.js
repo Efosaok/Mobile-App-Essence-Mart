@@ -1,24 +1,37 @@
-import React from 'react';
+import React, { memo, useEffect } from 'react';
 import { ImageBackground, Image, StyleSheet, StatusBar, Dimensions, Platform } from 'react-native';
 import { Block, Button, Text, theme } from 'galio-framework';
-
-const { height, width } = Dimensions.get('screen');
-import { Images, nowTheme } from '../constants/';
+import { useNavigation } from '@react-navigation/native';
+import { Images, nowTheme } from "../constants";
 import { HeaderHeight } from '../constants/utils';
 import { useUserContext } from '../context/UserContext';
-import { useEffect } from 'react';
 
-const Onboarding = (props) => {
-  const { navigation } = props;
+
+const { height, width } = Dimensions.get('screen');
+const getStartedStyle = { fontFamily: 'montserrat-bold', fontSize: 14 }
+const getStartedLogoStyle = { width: 115, height: 124, bottom: 200, position: 'absolute' }
+const getStartedBackgroundStyle = { flex: 1, height, width, zIndex: 1 }
+const getStartedContainerStyle = {
+  marginTop: theme.SIZES.BASE * 2.5,
+  marginBottom: theme.SIZES.BASE * 2
+}
+const getStartedHeadingStyle = {
+  fontFamily: 'montserrat-regular', bottom: 50, position: 'absolute', letterSpacing: 2, paddingHorizontal: 20, textAlign: 'center'
+}
+
+const Onboarding = memo(() => {
+  const navigation = useNavigation();
   const { isAuthenticated } = useUserContext()
+  const { navigate } = navigation
+  const gotoRoute = () => navigate('App')
 
   useEffect(() => {
     try {
-      if (isAuthenticated) navigation.navigate('App')
+      if (isAuthenticated) navigate('App')
     } catch (error) {
       console.log('Onboarding - isAuthenticated', error)
     }
-  }, [])
+  }, [isAuthenticated, navigate])
 
   return (
     <Block flex style={styles.container}>
@@ -26,19 +39,17 @@ const Onboarding = (props) => {
       <Block flex>
         <ImageBackground
           source={Images.Onboarding}
-          style={{ flex: 1, height: height, width, zIndex: 1 }}
+          style={getStartedBackgroundStyle}
         />
         <Block space="between" style={styles.padded}>
           <Block>
             <Block middle>
-              <Image source={Images.NowLogo} style={{ width: 115, height: 124, bottom: 200, position: 'absolute' }} />
+              <Image source={Images.NowLogo} style={getStartedLogoStyle} />
             </Block>
             <Block>
               <Block middle>
                 <Text
-                  style={{
-                    fontFamily: 'montserrat-regular', bottom: 50, position: 'absolute', letterSpacing: 2, paddingHorizontal: 20, textAlign: 'center'
-                  }}
+                  style={getStartedHeadingStyle}
                   color="white"
                   size={44}
                 >
@@ -49,22 +60,19 @@ const Onboarding = (props) => {
             </Block>
             <Block
               row
-              style={{
-                marginTop: theme.SIZES.BASE * 2.5,
-                marginBottom: theme.SIZES.BASE * 2
-              }}
+              style={getStartedContainerStyle}
             >
               <Button
                 shadowless
                 style={styles.button}
                 color={nowTheme.COLORS.PRIMARY}
-                onPress={() => navigation.navigate('App')}
+                onPress={gotoRoute}
               >
                 <Text
-                  style={{ fontFamily: 'montserrat-bold', fontSize: 14 }}
+                  style={getStartedStyle}
                   color={theme.COLORS.WHITE}
                 >
-                  GET STARTED
+                  {isAuthenticated ? 'CLICK TO CONTINUE' : 'GET STARTED'}
                 </Text>
               </Button>
             </Block>
@@ -73,7 +81,7 @@ const Onboarding = (props) => {
       </Block>
     </Block>
   );
-}
+})
 
 export default Onboarding;
 

@@ -1,5 +1,5 @@
 import { Block, Text } from 'galio-framework';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert } from 'react-native';
 import { WebView } from 'react-native-webview';
 import axios from 'axios'
@@ -29,20 +29,16 @@ export default function Checkout(props) {
   const { route } = props;
   const uid = route && route.params && route.params.uid
   const isDraft = route && route.params && route.params.isDraft
-  const _paymentURL = payment && payment.authorization_url;
+  const paymentURL = payment && payment.authorization_url;
   const WEBVIEW_REF = React.createRef()
   // const authorization_url = 'https://checkout.paystack.com/luKuasMan';
-  const callback_url = 'https://standard.paystack.co/close';
-  var $urlPattern = new RegExp('^' + callback_url, 'i');
-  const matchUrl = (value, vm) => {
-    return $urlPattern.test(value)
-  }
+  const callbackURL = 'https://standard.paystack.co/close';
+  const $urlPattern = new RegExp(`^${  callbackURL}`, 'i');
+  const matchUrl = (value) => $urlPattern.test(value)
 
-  const showScreen = () => {
-    errorMessage && Alert.alert(null, errorMessage, [
+  const showScreen = () => errorMessage && Alert.alert(null, errorMessage, [
       { text: "OK", onPress: () => setErrorMessage("") }
     ])
-  }
 
   const getStore = () => {
     if (isDraft || uid) return order;
@@ -97,7 +93,7 @@ export default function Checkout(props) {
           createOrder(cart, user, currentStore, quantites)
           .then(async(snapshot) => {
             setToast({ message: `Your Order has been placed successfuly
-              We\'d redirect you shortly`, type: 'success'})
+              We'd redirect you shortly`, type: 'success'})
             console.log('order', order && order.id)
             if (isDraft && uid) await removeOrder(order.id)
             resetStateAndRedirect(snapshot)
@@ -133,10 +129,10 @@ export default function Checkout(props) {
     }
   };
 
-  if (!_paymentURL) {
+  if (!paymentURL) {
     return (
       <Block flex row style={{ marginTop: 40, marginVertical: 8, }}>
-        <Text color={nowTheme.COLORS.ERROR}>Unable to Process the payment, Pleas try again.</Text>
+        <Text color={nowTheme.COLORS.ERROR}>Unable to Process the payment, Please try again.</Text>
       </Block>
     )
   }
@@ -147,7 +143,7 @@ export default function Checkout(props) {
       {isLoading && <Loader text={loaderMessage} isLoading={isLoading} />}
       <WebView
         ref={WEBVIEW_REF}
-        source={{ uri: _paymentURL }}
+        source={{ uri: paymentURL }}
         style={{ marginTop: 40 }}
         onNavigationStateChange={ onNavigationStateChange }
       />

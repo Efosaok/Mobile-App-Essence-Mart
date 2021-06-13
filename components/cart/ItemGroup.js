@@ -3,7 +3,7 @@ import { Dimensions } from 'react-native';
 import { Block } from 'galio-framework';
 import Item from './Item';
 
-const { width, height } = Dimensions.get('screen');
+const { width } = Dimensions.get('screen');
 
 const ItemGroup = (props) => {
   const { itemStyle, carts } = props

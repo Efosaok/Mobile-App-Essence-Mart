@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, SafeAreaView, StyleSheet, Dimensions } from 'react-native'
+import { View, StyleSheet, Dimensions } from 'react-native'
 // import AsyncStorage from '@react-native-community/async-storage'
 import FontAwesome from 'react-native-vector-icons/Ionicons'
 import RNRestart from 'react-native-restart'
@@ -9,41 +9,46 @@ import { Text, Block } from 'galio-framework';
 import nowTheme from '../constants/Theme';
 // some button component
 import Button from './Button'
+import logger from '../config/logger';
 
-const { width, height } = Dimensions.get('screen');
+const { width } = Dimensions.get('screen');
 
-export class ErrorBoundary extends React.Component {
+class ErrorBoundary extends React.Component {
+  constructor() {
+    super()
 
-  state = {
-    error: false
+    this.state = {
+      error: false
+    }
   }
 
-  static getDerivedStateFromError (error) {
+  static getDerivedStateFromError () {
     return { error: true };
   }
 
   componentDidCatch (error, errorInfo) {
-    console.log('error, errorInfo', error, errorInfo)
+    logger.error('error, errorInfo', error, errorInfo)
     // deal with errorInfo if needed
     Sentry.captureException(error);
   }
 
-  destroyAuthToken = async () => {
-    // await AsyncStorage.removeItem('user_settings');
-  }
-
-  handleBackToSignIn = async () => {
+   async handleBackToSignIn () {
     // remove user settings
     await this.destroyAuthToken();
     // restart app
     RNRestart.Restart();
   }
 
+  async destroyAuthToken () {
+    return this.state
+    // await AsyncStorage.removeItem('user_settings');
+  }
+
   render () {
+    const { error } = this.state;
+    const { children } = this.props;
 
-    // const { theme } = this.context;
-
-    if (this.state.error) {
+    if (error) {
       return (
         <Block style={styles.safeAreaView}>{/* style={styles.safeAreaView} */}
           <View style={styles.container}>{/* style={styles.container} */}
@@ -60,8 +65,8 @@ export class ErrorBoundary extends React.Component {
                 The app ran into a problem and could not continue. We apologise for any inconvenience this has caused! Press the button below to restart the app and sign back in. Please contact us if this issue persists.
               </Text>
               <Button
-                label={'Back to Sign In Screen'}
-                onPress={() => this.handleBackToSignIn()}
+                label="Back to Sign In Screen"
+                onPress={this.handleBackToSignIn}
                 style={{
                   marginVertical: 15, 
                 }}
@@ -73,9 +78,9 @@ export class ErrorBoundary extends React.Component {
           </View>
         </Block>
       )
-    } else {
-      return this.props.children;
-    }
+    } 
+      return children;
+    
   }
 }
 

@@ -2,7 +2,8 @@ import firebase from "../firebase";
 // import { LoginManager, AccessToken } from 'react-native-fbsdk';
 
 function clean(obj) {
-  for (var propName in obj) {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const propName in obj) {
     if (obj[propName] === null || obj[propName] === undefined) {
       delete obj[propName];
     }

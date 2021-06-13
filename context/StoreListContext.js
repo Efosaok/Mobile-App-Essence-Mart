@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useState } from 'react'
+import { useReducer, useState, useMemo } from 'react'
 import constate from 'constate'
 import logger from './Logger'
 
@@ -31,23 +31,23 @@ const useStoreList = () => {
   const [data, setData] = useState(initialState);
   const [state, dispatch] = useReducer(loggerReducer, data)
 
-  useEffect(() => {
+  useMemo(() => {
     setData(state)
   }, [state, setData])
 
   const { store, section } = state
 
-  const setActiveStore = store => {
+  const setActiveStore = activeStore => {
     dispatch({
       type: 'ACTIVE_STORE',
-      store
+      store: activeStore
     })
   }
 
-  const setStoreSection = store => {
+  const setStoreSection = storeSection => {
     dispatch({
       type: 'STORE_SECTION',
-      store
+      store: storeSection
     })
   }
 

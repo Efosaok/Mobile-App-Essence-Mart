@@ -3,8 +3,7 @@ import firebase from "../firebase";
 
 const db = firebase.firestore();
 
-export const createCurrency = (body, user) => { 
-  return db.collection('Currencies')
+export const createCurrency = (body, user) => db.collection('Currencies')
   .add({
     ...body,
     status: 'ACTIVE',
@@ -12,24 +11,20 @@ export const createCurrency = (body, user) => {
     createdAt: Date.now(),
     updatedAt: Date.now(),
   })
-}
 
-export const getCurrencies = () => { 
-  return db.collection("Currencies")
+export const getCurrencies = () => db.collection("Currencies")
   .get()
-}
 
-export const getCurrency = (currencyId) => { 
-  return db.collection(`Currencies/${currencyId}`)
-}
+export const getCurrency = (currencyId) => db.collection(`Currencies/${currencyId}`)
 
 export const updateCurrencies = (currencies) => { 
   if (Array.isArray(currencies)) {
+    // eslint-disable-next-line no-plusplus
     for (let index = 0; index < currencies.length; index++) {
       return db.collection(`Currencies/${currencies[index].id}`)
-      .onSnapshot((context, snap) => {
+      // .onSnapshot((context, snap) => {
         
-      })
+      // })
     }
   }
 }

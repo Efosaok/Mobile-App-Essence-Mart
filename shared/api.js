@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { TrackJS } from 'trackjs';
-import { useUserContext } from '../context/UserContext';
+// import { TrackJS } from 'trackjs';
 import React, { useEffect } from 'react';
+import { useUserContext } from '../context/UserContext';
 import { useToastContext } from '../context/ToastContext';
 
 
@@ -41,9 +41,7 @@ const useApi = () => {
   useEffect(() => {
     let interceptor;
     if (token) {
-      interceptor = axiosInstance.interceptors.request.use(config => {
-        return { ...config, headers: { 'Authorization': `Token ${token}`, ...config.headers } };
-      })
+      interceptor = axiosInstance.interceptors.request.use(config => ({ ...config, headers: { 'Authorization': `Token ${token}`, ...config.headers } }))
     }
     return () => {
       if (interceptor) {
@@ -53,24 +51,22 @@ const useApi = () => {
   }, [token])
 
   useEffect(() => {
-    axiosInstance.interceptors.request.use(config => {
-      return { ...config, headers: { ...config.headers } };
-    });
+    axiosInstance.interceptors.request.use(config => ({ ...config, headers: { ...config.headers } }));
   }, [])
 
 
   useEffect(() => {
     const interceptor = axiosInstance.interceptors.response.use(res => res, err => {
-      if (process.env.NODE_ENV === 'production') {
-        TrackJS.console.log({
-          url: err.response.url,
-          status: err.response.status,
-          statusText: err.response.statusText,
-          request: err.response.data,
-        });
+      // if (process.env.NODE_ENV === 'production') {
+      //   TrackJS.console.log({
+      //     url: err.response.url,
+      //     status: err.response.status,
+      //     statusText: err.response.statusText,
+      //     request: err.response.data,
+      //   });
 
-        TrackJS.track(err.response.status + " " + err.response.statusText + ": " + err.response.url);
-      }
+      //   TrackJS.track(`${err.response.status  } ${  err.response.statusText  }: ${  err.response.url}`);
+      // }
 
       const errorMessage = (err.response && err.response.message)
       switch (err.response.status) {
@@ -103,7 +99,7 @@ const useApi = () => {
     verify: { post: (data, type) => axiosInstance.post(`verify/${type}/`, data) },
     mailingList: { post: (data) => axiosInstance.post('mailing-list/', data) },
     partners: createEndpoint('admin/partners/$id/'),
-    productList: { get: (partnerId) => axiosInstance.get(`products/${partnerId && '?partner=' + partnerId}`) },
+    productList: { get: (partnerId) => axiosInstance.get(`products/${partnerId && `?partner=${  partnerId}`}`) },
     products: createHyperlinkedEndpoint('admin/products/$id/'),
     productImages: createEndpoint('admin/products/$id/images/'),
     authToken: { post: (data) => axiosInstance.post(`api-token-auth/`, data) },

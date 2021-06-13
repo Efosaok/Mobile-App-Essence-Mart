@@ -1,13 +1,13 @@
-import currencies_list from "./currencies-list";
+import currenciesList from "./currencies-list";
 
-export const queryCurrenciesByNaira = (from_currency) => {
+export const queryCurrenciesByNaira = (fromCurrency) => {
   const to = 'NGN'
-  const from = Object.keys(currencies_list);
+  const from = Object.keys(currenciesList);
   // USD_NGN,EUR_NGN,...AFK - would have to add 'NGN,' to the end of the string
-  let from_to = from.map(fromCurrency => `${fromCurrency}_${to}`);
-  from_to = from_to.join(',');
-  if (from_to) return from_to;
-  return `${from_currency}_${to}`
+  let fromTo = from.map(eachFrom => `${eachFrom}_${to}`);
+  fromTo = fromTo.join(',');
+  if (fromTo) return fromTo;
+  return `${fromCurrency}_${to}`
 }
 
 export const currencies = {

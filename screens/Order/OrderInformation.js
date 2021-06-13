@@ -6,20 +6,19 @@ import {
   Image,
   TouchableWithoutFeedback,
   Keyboard,
-  ScrollView,
   Alert,
   SafeAreaView,
 } from 'react-native';
 
 // galio components
 import {
-  Text, Block, NavBar,
+  Text, Block,
 } from 'galio-framework';
 import axios from "axios";
 
 import { Button, Icon } from '../../components';
-import { nowTheme } from "../../constants";
-import { Images } from '../../constants';
+import { nowTheme , Images } from "../../constants";
+
 import { useCartContext } from '../../context/CartContext';
 import ItemGroup from '../../components/cart/ItemGroup';
 import Loader from '../../components/Loader';
@@ -27,7 +26,7 @@ import { currencies } from '../../constants/currencies';
 import { useUserContext } from '../../context/UserContext';
 // import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { height, width } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const DismissKeyboard = ({ children }) => (
   <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>{children}</TouchableWithoutFeedback>
@@ -53,7 +52,7 @@ const OrderInformation = (props) => {
   const { user } = useUserContext()
   const { navigation, full } = props;
   const imageStyles = [full ? styles.fullImage : styles.horizontalImage];
-  const { order, cart, initailizeCartPayment, addToCart } = useCartContext();
+  const { order, initailizeCartPayment, addToCart } = useCartContext();
 
   const isDraft = order && order.status === 'DRAFT';
   const cta = isDraft ? 'Order Now' : 'Re-Order'
@@ -62,11 +61,9 @@ const OrderInformation = (props) => {
   const items = order && order.cart && order.cart.map((item) => Quantity(item) * IndexedPrice(item));
   const total = items && items.reduce((prev, amt) => Number(amt) + prev, 0);
 
-  const showScreen = () => {
-    errorMessage && Alert.alert(null, errorMessage, [
+  const showScreen = () => errorMessage && Alert.alert(null, errorMessage, [
       { text: "OK", onPress: () => setErrorMessage("") }
     ])
-  }
 
   const {
     buttonContainerStyle, 
@@ -90,6 +87,8 @@ const OrderInformation = (props) => {
       addToCart(order && order.cart)
       setIsLoading(false)
       navigation.navigate('Shopping', { screen: 'Cart', params: { isDraft, uid } });
+    } else {
+      navigation.navigate('TrackOrder', { screen: 'Rating', params: { uid } });
     }
   }
 
@@ -104,6 +103,7 @@ const OrderInformation = (props) => {
       const from = currencyType() || 'EUR';
       const amountInNaira = currencies[from] * total;
       const FloatTotal = parseFloat(amountInNaira).toFixed(2)
+      // eslint-disable-next-line radix
       const AmountInKobo = parseInt(String(FloatTotal).split('.').join(''))
 
       const testEmail = "customer@email.com"

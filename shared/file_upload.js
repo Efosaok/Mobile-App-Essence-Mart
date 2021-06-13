@@ -3,13 +3,13 @@ import ImageResizer from 'react-native-image-resizer';
 import * as ImagePicker from 'expo-image-picker';
 
 export const ResizeImage = (selectedPictureUri, userID, cb) => {
-  let newWidth = 120;
-  let newHeight = 120;
-  let compressFormat = 'PNG';
-  let quality = 100;
-  let rotation = 0;
-  let outputPath = null;
-  let imageUri = selectedPictureUri;
+  const newWidth = 120;
+  const newHeight = 120;
+  const compressFormat = 'PNG';
+  const quality = 100;
+  const rotation = 0;
+  const outputPath = null;
+  const imageUri = selectedPictureUri;
   ImageResizer.createResizedImage(
     imageUri,
     newWidth,
@@ -21,14 +21,14 @@ export const ResizeImage = (selectedPictureUri, userID, cb) => {
   )
   .then((response) => {
     // response.uri is the URI of the new image that can now be displayed, uploaded...
-    //resized image uri
+    // resized image uri
     console.log('response', response)
-    let uri = response.uri;
-    //generating image name
-    let imageName = 'profile' + (userID || 'randomId');
-    //to resolve file path issue on different platforms
-    let uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
-    //setting the image name and image uri in the state
+    const {uri} = response;
+    // generating image name
+    const imageName = `profile${  userID || 'randomId'}`;
+    // to resolve file path issue on different platforms
+    const uploadUri = Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+    // setting the image name and image uri in the state
     console.log('uploadUri', uploadUri)
     if (cb) cb({ uploadUri, imageName })
     return { uploadUri, imageName };
@@ -46,7 +46,7 @@ export const TakePicture = async (cb) => {
         if (status !== 'granted') {
           Alert.alert('Permissions denied', 'Sorry, Camera roll permissions is needed!');
         } else {
-          let result = await ImagePicker.launchCameraAsync({
+          const result = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
@@ -74,7 +74,7 @@ export const SelectImage = async (cb) => {
       if (status !== 'granted') {
         Alert.alert('Permissions denied', 'Sorry, Image library permissions is needed!');
       } else {
-        let result = await ImagePicker.launchImageLibraryAsync({
+        const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: true,
           aspect: [4, 3],

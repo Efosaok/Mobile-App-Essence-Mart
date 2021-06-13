@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useState } from 'react'
+import { useReducer, useState, useMemo } from 'react'
 import constate from 'constate'
 import logger from './Logger'
 
@@ -105,7 +105,7 @@ const useCart = () => {
   const [data, setData] = useState(initialState);
   const [state, dispatch] = useReducer(loggerReducer, data)
 
-  useEffect(() => {
+  useMemo(() => {
     setData(state)
   }, [state, setData])
 
@@ -125,44 +125,44 @@ const useCart = () => {
   }
 
   const setOrderCount = (histories, status) => {
-    let data
+    let orderCount
     switch (status) {
       case 'PENDING':
-        data = { ongoing: histories }
+        orderCount = { ongoing: histories }
         break;
 
       case 'DRAFT':
-        data = { draft: histories }
+        orderCount = { draft: histories }
         break;
     
       default:
-        data = { histories }
+        orderCount = { histories }
         break;
     }
     dispatch({
       type: 'UPDATE_HISTORY',
-      data
+      data: orderCount
     })
   }
 
-  const setOrder = (order, status) => {
+  const setOrder = (order) => {
     dispatch({
       type: 'UPDATE_ORDER',
       data: { order }
     })
   }
 
-  const initailizeCartPayment = ({ data }) => {
+  const initailizeCartPayment = ({ data: initData }) => {
     dispatch({
       type: 'INITIALIZE_CART_PAYMENT',
-      data
+      data: initData
     })
   }
 
-  const updateCartPayment = ({ data }) => {
+  const updateCartPayment = ({ data: paymentData }) => {
     dispatch({
       type: 'UPDATE_CART_PAYMENT',
-      data
+      data: paymentData
     })
   }
 

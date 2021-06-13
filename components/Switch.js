@@ -3,33 +3,39 @@ import { Switch, Platform } from "react-native";
 
 import nowTheme from "../constants/Theme";
 
-class MkSwitch extends React.Component {
-  render() {
-    const { value, ...props } = this.props;
-    const thumbColor =
-      Platform.OS === "ios"
-        ? nowTheme.COLORS.PRIMARY
-        : Platform.OS === "android" && value
-        ? nowTheme.COLORS.SWITCH_ON
-        : nowTheme.COLORS.SWITCH_OFF;
+const trackColor = {
+  true: "#d3d3d3",
+  false: Platform.OS === "ios" ? "#d3d3d3" : "#333"
+}
+
+const MkSwitch = (props) => {
+    const { value, ...rest } = props;
+
+    const addThumbColor = () => {
+      if (Platform.OS === "ios") {
+        return nowTheme.COLORS.PRIMARY
+      } if (Platform.OS === "android" && value) {
+        return nowTheme.COLORS.SWITCH_ON
+      }
+      return nowTheme.COLORS.SWITCH_OFF;
+    }
+
+    const thumbColor = addThumbColor()
 
     return (
       <Switch
         value={value}
         thumbColor={[
           value === true
-            ? nowTheme.COLORS.SWITCH_ON
+            ? thumbColor// nowTheme.COLORS.SWITCH_ON
             :'#ffffff'
         ]}
-        ios_backgroundColor={"#D8D8D8"}
-        trackColor={{
-          true: "#d3d3d3",
-          false: Platform.OS == "ios" ? "#d3d3d3" : "#333"
-        }}
-        {...props}
+        ios_backgroundColor="#D8D8D8"
+        trackColor={trackColor}
+        {...rest}
       />
     );
   }
-}
+
 
 export default MkSwitch;

@@ -25,7 +25,7 @@ export const documentCounter = collectionName => (change, context) =>
                 count: ((docSnap.data() && docSnap.data().count) || 0) + 1
             }));
     // on delete
-    } else if (change.before.exists && !change.after.exists) {
+    } if (change.before.exists && !change.after.exists) {
       return t
         .get(firestore.collection('metadatas')
         .doc(collectionName))

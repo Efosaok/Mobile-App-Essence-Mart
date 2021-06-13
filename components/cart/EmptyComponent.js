@@ -11,14 +11,14 @@ const thumbMeasure = (width - (width / 5));
 const EmptyComponent = () => {
   const { goodsStyle } = styles;
   return (
-    <Fragment>
+    <>
       <Block flex column center style={goodsStyle}>
         <Icon name="ios-cart" size={thumbMeasure} style={{ marginRight: 8, color: "#DCDCDC" }} />
       </Block>
       <Block center>
         <Text style={{ color: nowTheme.COLORS.PRIMARY }}>Your cart is empty </Text>
       </Block>
-    </Fragment>
+    </>
   );
 };
 

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, Dimensions, ActivityIndicator, Alert } from 'react-native';
-import { Block, theme, Text, Button } from "galio-framework";
-import { useStoreListContext } from '../context/StoreListContext'
+import React, { useCallback, useEffect, useState } from 'react';
+import { SafeAreaView, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
+import { Block, theme, Button } from "galio-framework";
 import { WebView } from "react-native-webview";
+import { useStoreListContext } from '../context/StoreListContext'
 import { nowTheme } from '../constants'
 import { script } from './storeScript'
 import { useCartContext } from '../context/CartContext';// ES Modules
@@ -35,23 +35,27 @@ export default function DetailsScreen({ navigation }) {
     setIsCheckout(checkout)
   }
 
-  useEffect(() => {
+  const runOnStoreChange = useCallback(() => {
     updateBooleanProps(false, null, false);
     setIsLoading(true);
     setCurrentURL(store.link)
     setURLs([...URLs, store.link])
-    const redirectTo = 'window.location = "' + currentURL + '"';
-    WEBVIEW_REF.current && WEBVIEW_REF.current.injectJavaScript(redirectTo);
+    const redirectTo = `window.location = "${  currentURL  }"`;
+    if (WEBVIEW_REF.current) WEBVIEW_REF.current.injectJavaScript(redirectTo);
     setIsLoading(false);
     addToCart([])
+  }, [URLs, WEBVIEW_REF, addToCart, currentURL, store.link])
+
+  useEffect(() => {
+    runOnStoreChange()
     return () => {}
-  }, [store])
+  }, [store, runOnStoreChange])
 
 
   const onCheckout = () => {
     setCurrentURL(store.cartLink)
     updateBooleanProps(true, false, true);
-    WEBVIEW_REF.current && WEBVIEW_REF.current.postMessage( "Checkout" );
+    if (WEBVIEW_REF.current) WEBVIEW_REF.current.postMessage( "Checkout" );
   }
 
   const onCancelLoading = () => {
@@ -71,18 +75,14 @@ export default function DetailsScreen({ navigation }) {
     setURLs([...URLs, url])
   }
 
-  var $urlPattern = new RegExp('^' + store.cartLink, 'i');
-  const matchUrl = (value, vm) => {
-    return $urlPattern.test(value)
-  }
+  const $urlPattern = new RegExp(`^${  store.cartLink}`, 'i');
+  const matchUrl = (value) => $urlPattern.test(value)
 
-  const getLastVisitedURL = () => {
-    return URLs[URLs.length - 1];
-  }
+  const getLastVisitedURL = () => URLs[URLs.length - 1]
 
   const getCarts = (data) => {
     const lastVisitedURL = getLastVisitedURL()
-    if ( 'object' == typeof data && data.carts ) {
+    if ( typeof data === 'object' && data.carts ) {
       console.log('matchUrl(lastVisitedURL)', matchUrl(lastVisitedURL))
       console.log('store.cartLink', store.cartLink)
       console.log('lastVisitedURL', lastVisitedURL)
@@ -98,21 +98,20 @@ export default function DetailsScreen({ navigation }) {
         setMessage(message || 'Ouch!, It seems we couldn\'t get your item out. \n Please sit back while we retry');
         updateBooleanProps(true, false, true);
         setIsLoading(true);
-        WEBVIEW_REF.current && WEBVIEW_REF.current.postMessage( "Checkout" );
+        if (WEBVIEW_REF.current) WEBVIEW_REF.current.postMessage( "Checkout" );
         // WEBVIEW_REF.current && WEBVIEW_REF.current.injectJavaScript(script(store));
       }
     }
   }
 
-  const onMessage = async (e) => {
+  const onMessage = async (event) => {
     setIsLoading(true);
     try {
-      var data = e.nativeEvent.data || [];
+      let data = event.nativeEvent.data || [];
       data = JSON.parse(data);
-      // console.log('e.nativeEvent', e.nativeEvent)
       getCarts(data); // end the loading in getCarts
-    } catch ( e ) {
-      console.log('e.message ', JSON.parse(e.message) || JSON.parse(e))
+    } catch ( error ) {
+      console.log('error.message ', JSON.parse(error.message) || JSON.parse(error))
       // Alert.alert(null, e.message || e, [{ text: "OK", onPress: () => console.log("OK Pressed") }])
       setIsLoading(false)
     }
@@ -141,16 +140,17 @@ export default function DetailsScreen({ navigation }) {
             ref={WEBVIEW_REF}
             source={{ uri: currentURL }}
             injectedJavaScript={script(store, store.cartElementClass)}
-            javaScriptEnabled={true}
+            javaScriptEnabled
             onMessage={onMessage}
             onNavigationStateChange={onNavigationStateChange}
             injectedJavaScriptForMainFrameOnly={false}
-            useWebKit={true}
+            useWebKit
+            domStorageEnabled
             originWhitelist={WHITELIST}
-            javaScriptEnabledAndroid={true}
+            javaScriptEnabledAndroid
             renderLoading={LoadingIndicatorView}
             onError={evnt => console.log('error webview', evnt.nativeEvent.description)}
-            startInLoadingState={true}
+            startInLoadingState
           />
         </Block>
       </Block>

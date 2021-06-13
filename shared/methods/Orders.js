@@ -20,7 +20,7 @@ export const createOrder = (cart, user, store, quantities, status) => {
     paymentId: paymentId || '',
     status: status || 'ACTIVE',
     userId: user.uid,
-    address: (user.streetAddress1 || '') + ' ' + (user.streetAddress2 || ''),
+    address: `${user.streetAddress1 || ''  } ${  user.streetAddress2 || ''}`,
     timestamp: firebase.database.ServerValue.TIMESTAMP,
     createdAt: Date.now(),
     updatedAt: Date.now(),
@@ -53,25 +53,23 @@ export const getOrders = (userId, status) => {
   }
 }
 
-export const getOrder = (orderId) => { 
-  return db.collection(`orders/${orderId}`)
+export const getOrder = (orderId) =>  
+   db.collection(`orders/${orderId}`)
   .get()
   // .orderBy("email", "asc")
-}
 
-export const removeOrder = (orderId) => { 
-  return db.collection('orders')
+
+export const removeOrder = (orderId) =>  
+   db.collection('orders')
   .doc(orderId)
   .delete()
   // .orderBy("email", "asc")
-}
+
 
 /**
  * Count documents in orders collection.
  */
- export const ordersCounter = () => {
-  return db.collection('orders')
+ export const ordersCounter = () => db.collection('orders')
     .doc('orders')
     // .where("status", "==", 'DRAFT')
-    .onWrite(documentCounter('orders'));
-}
+    .onWrite(documentCounter('orders'))

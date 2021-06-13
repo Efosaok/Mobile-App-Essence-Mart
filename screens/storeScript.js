@@ -221,15 +221,7 @@ export const script = (store, simulateClick) => `!(function($) {
     globalWindow.ReactNativeWebView.postMessage({ error: err });
   }
   true
-})(${require('../shared/jquery')});
+})();
 `
 
-// return Alert.alert(
-//   'External URL',
-//   'Do you want to open this URL in your browser?',
-//   [
-//     {text: 'Cancel', style: 'cancel'},
-//     {text: 'OK', onPress: () => Linking.openURL( data.external_url_open )},
-//   ],
-//   { cancelable: false }
-// );
+export default script;

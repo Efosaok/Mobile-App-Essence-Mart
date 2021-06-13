@@ -1,25 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import ModalDropdown from 'react-native-modal-dropdown';
 import { Block, Text } from 'galio-framework';
 
 import Icon from './Icon';
 import { nowTheme } from '../constants';
 
-class DropDown extends React.Component {
-  state = {
+const DropDown = (props) => {
+  const [state, setState] = useState({
     value: 1
+  });
+
+  const handleOnSelect = (index, value) => {
+    const { onSelect } = props;
+
+    setState({ value });
+    if (onSelect) onSelect(index, value);
   };
 
-  handleOnSelect = (index, value) => {
-    const { onSelect } = this.props;
-
-    this.setState({ value: value });
-    onSelect && onSelect(index, value);
-  };
-
-  render() {
     const {
       onSelect,
       iconName,
@@ -29,8 +28,8 @@ class DropDown extends React.Component {
       color,
       textStyle,
       style,
-      ...props
-    } = this.props;
+      ...rest
+    } = props;
 
     const modalStyles = [styles.qty, color && { backgroundColor: color }, style];
 
@@ -39,14 +38,14 @@ class DropDown extends React.Component {
     return (
       <ModalDropdown
         style={modalStyles}
-        onSelect={this.handleOnSelect}
+        onSelect={handleOnSelect}
         dropdownStyle={styles.dropdown}
         dropdownTextStyle={{ paddingLeft: 16, fontSize: 12 }}
-        {...props}
+        {...rest}
       >
         <Block flex row middle space="between">
           <Text size={12} style={textStyles}>
-            {this.state.value}
+            {state.value}
           </Text>
           <Icon
             name={iconName || 'minimal-down2x'}
@@ -58,16 +57,15 @@ class DropDown extends React.Component {
       </ModalDropdown>
     );
   }
-}
 
-DropDown.propTypes = {
-  onSelect: PropTypes.func,
-  iconName: PropTypes.string,
-  iconFamily: PropTypes.string,
-  iconSize: PropTypes.number,
-  color: PropTypes.string,
-  textStyle: PropTypes.any
-};
+// DropDown.propTypes = {
+//   onSelect: PropTypes.func,
+//   iconName: PropTypes.string,
+//   iconFamily: PropTypes.string,
+//   iconSize: PropTypes.number,
+//   color: PropTypes.string,
+//   textStyle: PropTypes.any
+// };
 
 const styles = StyleSheet.create({
   qty: {
